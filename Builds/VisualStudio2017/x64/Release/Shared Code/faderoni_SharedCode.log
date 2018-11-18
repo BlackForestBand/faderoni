@@ -1,0 +1,22 @@
+﻿  PluginProcessor.cpp
+d:\code\faderoni\source\pluginprocessor.cpp(100): warning C4100: "index": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(104): warning C4100: "index": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(109): warning C4100: "newName": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(109): warning C4100: "index": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(114): warning C4100: "samplesPerBlock": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(114): warning C4100: "sampleRate": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(149): warning C4100: "midiMessages": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(149): warning C4100: "buffer": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(162): warning C4244: "Argument": Konvertierung von "double" in "float", möglicher Datenverlust
+d:\code\faderoni\source\pluginprocessor.cpp(192): warning C4100: "destData": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(196): warning C4100: "sizeInBytes": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(196): warning C4100: "data": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(202): warning C4458: Deklaration von "volume" blendet Klassenmember aus
+  d:\code\faderoni\source\pluginprocessor.h(69): note: Siehe Deklaration von "FaderoniAudioProcessor::volume"
+d:\code\faderoni\source\pluginprocessor.cpp(208): warning C4458: Deklaration von "panning" blendet Klassenmember aus
+  d:\code\faderoni\source\pluginprocessor.h(70): note: Siehe Deklaration von "FaderoniAudioProcessor::panning"
+d:\code\faderoni\source\pluginprocessor.cpp(210): warning C4244: "Argument": Konvertierung von "int" in "float", möglicher Datenverlust
+d:\code\faderoni\source\pluginprocessor.cpp(247): warning C4100: "parameterIndex": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(253): warning C4100: "gestureIsStarting": Unreferenzierter formaler Parameter
+d:\code\faderoni\source\pluginprocessor.cpp(253): warning C4100: "parameterIndex": Unreferenzierter formaler Parameter
+  faderoni_SharedCode.vcxproj -> D:\Code\faderoni\Builds\VisualStudio2017\x64\Release\Shared Code\faderoni.lib

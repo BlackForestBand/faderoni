@@ -1,0 +1,8 @@
+﻿     Bibliothek "D:\Code\faderoni\Builds\VisualStudio2017\x64\Release\VST3\faderoni.lib" und Objekt "D:\Code\faderoni\Builds\VisualStudio2017\x64\Release\VST3\faderoni.exp" werden erstellt.
+  Code wird generiert.
+  Codegenerierung ist abgeschlossen.
+  faderoni_VST3.vcxproj -> D:\Code\faderoni\Builds\VisualStudio2017\x64\Release\VST3\faderoni.vst3
+  Zugriff verweigert
+          0 Datei(en) kopiert.
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\Microsoft.CppCommon.targets(138,5): error MSB3073: Der Befehl "copy "D:\Code\faderoni\Builds\VisualStudio2017\x64\Release\VST3\faderoni.vst3" "C:\Program Files\Common Files\VST3"
+C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Common7\IDE\VC\VCTargets\Microsoft.CppCommon.targets(138,5): error MSB3073: :VCEnd" wurde mit dem Code 1 beendet.

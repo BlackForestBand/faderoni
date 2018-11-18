@@ -1,0 +1,47 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "faderoni_StandalonePlugin", "faderoni_StandalonePlugin.vcxproj", "{30175B02-EAB5-9AB4-2628-0CA41C7D8513}"
+	ProjectSection(ProjectDependencies) = postProject
+		{06076979-E039-DEC0-551D-389122BE2DD9} = {06076979-E039-DEC0-551D-389122BE2DD9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "faderoni_VST3", "faderoni_VST3.vcxproj", "{F8872B5E-2CD7-842B-ED1C-B7F4AD9767AD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{06076979-E039-DEC0-551D-389122BE2DD9} = {06076979-E039-DEC0-551D-389122BE2DD9}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "faderoni_SharedCode", "faderoni_SharedCode.vcxproj", "{06076979-E039-DEC0-551D-389122BE2DD9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{0E8F5E6A-3351-487C-A9EF-56FE8B29BC04}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{30175B02-EAB5-9AB4-2628-0CA41C7D8513}.Debug|x64.ActiveCfg = Debug|x64
+		{30175B02-EAB5-9AB4-2628-0CA41C7D8513}.Debug|x64.Build.0 = Debug|x64
+		{30175B02-EAB5-9AB4-2628-0CA41C7D8513}.Release|x64.ActiveCfg = Release|x64
+		{30175B02-EAB5-9AB4-2628-0CA41C7D8513}.Release|x64.Build.0 = Release|x64
+		{F8872B5E-2CD7-842B-ED1C-B7F4AD9767AD}.Debug|x64.ActiveCfg = Debug|x64
+		{F8872B5E-2CD7-842B-ED1C-B7F4AD9767AD}.Debug|x64.Build.0 = Debug|x64
+		{F8872B5E-2CD7-842B-ED1C-B7F4AD9767AD}.Release|x64.ActiveCfg = Release|x64
+		{F8872B5E-2CD7-842B-ED1C-B7F4AD9767AD}.Release|x64.Build.0 = Release|x64
+		{06076979-E039-DEC0-551D-389122BE2DD9}.Debug|x64.ActiveCfg = Debug|x64
+		{06076979-E039-DEC0-551D-389122BE2DD9}.Debug|x64.Build.0 = Debug|x64
+		{06076979-E039-DEC0-551D-389122BE2DD9}.Release|x64.ActiveCfg = Release|x64
+		{06076979-E039-DEC0-551D-389122BE2DD9}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D2FF62AA-5437-4A26-9EE8-39FB9BEAEF0D}
+	EndGlobalSection
+EndGlobal
