@@ -13,9 +13,9 @@
 #include <math.h>
 
 //==============================================================================
-FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcessor& p)
+FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcessor& p, AudioProcessorValueTreeState* parameters)
     : AudioProcessorEditor(&p), processor(p), faderoniLook(LookAndFeel_V4::getMidnightColourScheme()),
-      headerFont(30, Font::bold), bodyFont(15), accentColour(0, 200, 255)
+      headerFont(30, Font::bold), bodyFont(15), accentColour(0, 200, 255), parameters(parameters)
 {
     faderoniLook.setColour(Slider::trackColourId, accentColour);
     faderoniLook.setColour(Slider::thumbColourId, accentColour);
@@ -67,10 +67,14 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     addAndMakeVisible(&lblHost);
     addAndMakeVisible(&lblOscPath);
     addAndMakeVisible(&inputHost);
-    addAndMakeVisible(&inputOscPath);
+    addAndMakeVisible(&inputSubtree);
     addAndMakeVisible(&btnSend);
     addAndMakeVisible(&sliderVolume);
     addAndMakeVisible(&sliderPanning);
+
+    // slider attachments for automation
+    volumeAttachment.reset(new SliderAttachment(*parameters, "volume", sliderVolume));
+    panningAttachment.reset(new SliderAttachment(*parameters, "panning", sliderPanning));
 }
 
 FaderoniAudioProcessorEditor::~FaderoniAudioProcessorEditor()
@@ -86,7 +90,16 @@ void FaderoniAudioProcessorEditor::setVolume(float val)
         return;
 
     prevVolume = val;
-    sliderVolume.setValue(val);
+    sliderVolume.setValue(val, dontSendNotification);
+}
+
+void FaderoniAudioProcessorEditor::setPanning(int val)
+{
+    if (val == prevPanning)
+        return;
+
+    prevPanning = val;
+    sliderPanning.setValue(val, dontSendNotification);
 }
 
 //==============================================================================
@@ -117,7 +130,7 @@ void FaderoniAudioProcessorEditor::resized()
     lblOscPath.setBounds(120, padY + 80, 100, inputHeight);
 
     inputHost.setBounds(220, padY + 50, 150, inputHeight);
-    inputOscPath.setBounds(220, padY + 80, 150, inputHeight);
+    inputSubtree.setBounds(220, padY + 80, 150, inputHeight);
 
     btnSend.setBounds(250, padY + 170, 120, height - 170 - 2 * padY);
 
@@ -154,8 +167,10 @@ int FaderoniAudioProcessorEditor::transformVolumeTextToValue(String text) const
 
 void FaderoniAudioProcessorEditor::sliderValueChanged(Slider* slider)
 {
-    auto debug = slider->getValue();
-    processor.setVolume(debug);
+    if (slider == &sliderVolume)
+        processor.setVolume(slider->getValue());
+    else if (slider == &sliderPanning)
+        processor.setPanning(slider->getValue());
 }
 
 String FaderoniAudioProcessorEditor::transformPanningValueToText(int value) const

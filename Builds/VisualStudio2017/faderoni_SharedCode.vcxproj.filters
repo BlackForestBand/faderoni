@@ -2304,6 +2304,9 @@
     <ClCompile Include="..\..\Source\MotuWebApi.cpp">
       <Filter>faderoni\Source</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Source\ApiCommunicationTimer.cpp">
+      <Filter>faderoni\Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\PluginProcessor.h">
@@ -4521,6 +4524,9 @@
       <Filter>JUCE Library Code</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Source\MotuWebApi.h">
+      <Filter>faderoni\Source</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Source\ApiCommunicationTimer.h">
       <Filter>faderoni\Source</Filter>
     </ClInclude>
   </ItemGroup>

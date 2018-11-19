@@ -9,9 +9,14 @@ MotuWebApi::~MotuWebApi()
 {
 }
 
-bool MotuWebApi::setVolume(int channel, float value) const
+bool MotuWebApi::setVolume(String subtree, float value) const
 {
-    return postJson("{ \"mix/chan/" + String(channel) + "/matrix/fader\": " + String(value, 10) + " }");
+    return postJson("\"" + subtree + "/fader\": " + String(value, 4) + " }");
+}
+
+bool MotuWebApi::setPanning(String subtree, float value) const
+{
+    return postJson("\"" + subtree + "/pan\": " + String(value, 4) + " }");
 }
 
 void MotuWebApi::setHostname(String hostname)

@@ -11,41 +11,49 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
-FaderoniAudioProcessor::FaderoniAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(BusesProperties()
-#if ! JucePlugin_IsMidiEffect
-#if ! JucePlugin_IsSynth
-        .withInput("Input", AudioChannelSet::stereo(), true)
-#endif
-        .withOutput("Output", AudioChannelSet::stereo(), true)
-#endif
-    )
-#endif
+AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 {
-    prevVolume = -1000;
-    prevPanning = -1000;
+    std::vector<std::unique_ptr<RangedAudioParameter>> params;
 
-    addParameter(volume = new AudioParameterFloat(
+    params.push_back(std::make_unique<AudioParameterFloat>(
         "volume", // parameter ID
         "Volume", // parameter name
         NormalisableRange<float>(-48.0f, 12.0f), // parameter range
         0.0f));
-    addParameter(panning = new AudioParameterInt(
+    params.push_back(std::make_unique<AudioParameterInt>(
         "panning", // parameter ID
         "Panning", // parameter name
         -100,
         100, // parameter range
         0));
 
+    return { params.begin(), params.end() };
+}
 
-    volume->addListener(this);
-    panning->addListener(this);
+//==============================================================================
+FaderoniAudioProcessor::FaderoniAudioProcessor()
+#ifndef JucePlugin_PreferredChannelConfigurations
+    : AudioProcessor(BusesProperties())
+#endif
+{
+    parameters = new AudioProcessorValueTreeState(*this, nullptr, Identifier("Faderoni"), initParameterLayout());
+    
+    volumeParameter = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume"));
+    panningParameter = dynamic_cast<AudioParameterInt*>(parameters->getParameter("panning"));
+
+    apiCommunicationTimer.setVolumeParameter(volumeParameter);
+    apiCommunicationTimer.setPanningParameter(panningParameter);
+
+
+    parameters->addParameterListener("volume", this);
+    parameters->addParameterListener("panning", this);
+
+    apiCommunicationTimer.startTimerHz(5);
 }
 
 FaderoniAudioProcessor::~FaderoniAudioProcessor()
 {
+    delete parameters;
 }
 
 //==============================================================================
@@ -113,7 +121,6 @@ void FaderoniAudioProcessor::changeProgramName(int index, const String& newName)
 //==============================================================================
 void FaderoniAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    prevVolume = *volume;
 }
 
 void FaderoniAudioProcessor::releaseResources()
@@ -150,32 +157,16 @@ void FaderoniAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 {
 }
 
-
-void FaderoniAudioProcessor::processVolume()
+/*
+void FaderoniAudioProcessor::processVolume(float volume)
 {
-    const auto currentVolume = volume->get();
-    const auto host = editor->inputHost.getText();
-
-    if (currentVolume != prevVolume)
-    {
-        motuWebApi.setHostname(host);
-        motuWebApi.setVolume(0, transformVolumeValueToMultiplicator(currentVolume));
-
-        prevVolume = currentVolume;
-    }
+    editor->setVolume(volume);
 }
 
-void FaderoniAudioProcessor::processPanning()
+void FaderoniAudioProcessor::processPanning(int panning)
 {
-    const auto currentPanning = panning->get();
-
-    if (currentPanning != prevPanning)
-    {
-        // send panning change to OSC
-
-        prevPanning = currentPanning;
-    }
-}
+    editor->setPanning(panning);
+}*/
 
 //==============================================================================
 bool FaderoniAudioProcessor::hasEditor() const
@@ -185,7 +176,7 @@ bool FaderoniAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* FaderoniAudioProcessor::createEditor()
 {
-    return (editor = new FaderoniAudioProcessorEditor(*this));
+    return (editor = new FaderoniAudioProcessorEditor(*this, parameters));
 }
 
 //==============================================================================
@@ -199,16 +190,14 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
     // whose contents will have been created by the getStateInformation() call.
 }
 
-void FaderoniAudioProcessor::setVolume(double volume)
+void FaderoniAudioProcessor::setVolume(float volume)
 {
-    this->volume->setValueNotifyingHost(static_cast<float>(this->volume->convertTo0to1(volume)));
-    processVolume();
+    volumeParameter->setValueNotifyingHost(volumeParameter->convertTo0to1(volume));
 }
 
 void FaderoniAudioProcessor::setPanning(int panning)
 {
-    this->panning->setValueNotifyingHost(panning);
-    processPanning();
+    panningParameter->setValueNotifyingHost(panningParameter->convertTo0to1(panning));
 }
 
 //==============================================================================
@@ -219,7 +208,7 @@ AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 }
 
 
-double FaderoniAudioProcessor::transformVolumeValueToMultiplicator(float value) const
+float FaderoniAudioProcessor::transformVolumeValueToMultiplicator(float value) const
 {
     if (value == -48)
         return 0;
@@ -229,6 +218,11 @@ double FaderoniAudioProcessor::transformVolumeValueToMultiplicator(float value) 
         return 4;
 
     return std::pow(10.0, value / 20.0);
+}
+
+float FaderoniAudioProcessor::transformPanningValueToMultiplicator(int value) const
+{
+    return value / 100.0;
 }
 
 
@@ -244,12 +238,24 @@ double FaderoniAudioProcessor::transformVolumeMultiplicatorToValue(int value) co
     return 20 * std::log10(value);
 }
 
+void FaderoniAudioProcessor::parameterChanged(const String& parameterID, float newValue)
+{
+    if (parameterID == "volume")
+        editor->setVolume(newValue);
+    else if (parameterID == "panning")
+        editor->setPanning(newValue);
+}
+
+/*
 void FaderoniAudioProcessor::parameterValueChanged(int parameterIndex, float newValue)
 {
-    processVolume();
-    editor->setVolume(volume->convertFrom0to1(newValue));
+    if (parameterIndex == 0)
+        editor->setVolume(parameters->convertFrom0to1(newValue));
+    else if (parameterIndex == 1)
+        editor->setPanning(panning->convertFrom0to1(newValue));
 }
 
 void FaderoniAudioProcessor::parameterGestureChanged(int parameterIndex, bool gestureIsStarting)
 {
 }
+*/

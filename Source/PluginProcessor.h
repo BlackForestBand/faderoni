@@ -13,11 +13,12 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 #include "MotuWebApi.h"
 #include "PluginEditor.h"
+#include "APICommunicationTimer.h"
 
 //==============================================================================
 /**
 */
-class FaderoniAudioProcessor : public AudioProcessor, public AudioProcessorParameter::Listener
+class FaderoniAudioProcessor : public AudioProcessor, public AudioProcessorValueTreeState::Listener
 {
 public:
     //==============================================================================
@@ -57,26 +58,21 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    void setVolume(double volume);
+    void setVolume(float volume);
     void setPanning(int panning);
-    double transformVolumeValueToMultiplicator(float value) const;
+    float transformVolumeValueToMultiplicator(float value) const;
+    float transformPanningValueToMultiplicator(int value) const;
     double transformVolumeMultiplicatorToValue(int value) const;
 
-    void parameterValueChanged(int parameterIndex, float newValue) override;
-    void parameterGestureChanged(int parameterIndex, bool gestureIsStarting) override;
-
+    void parameterChanged(const String& parameterID, float newValue) override;
 private:
-    AudioParameterFloat* volume;
-    AudioParameterInt* panning;
-    float prevVolume;
-    int prevPanning;
+    ApiCommunicationTimer apiCommunicationTimer;
+
+    AudioProcessorValueTreeState* parameters = nullptr;
+    AudioParameterFloat* volumeParameter = nullptr;
+    AudioParameterInt* panningParameter = nullptr;
 
     FaderoniAudioProcessorEditor* editor;
-
-    MotuWebApi motuWebApi;
-
-    void processVolume();
-    void processPanning();
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderoniAudioProcessor)

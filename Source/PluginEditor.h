@@ -14,21 +14,23 @@
 #include "PluginProcessor.h"
 
 class FaderoniAudioProcessor;
+typedef AudioProcessorValueTreeState::SliderAttachment SliderAttachment;
+typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 
 //==============================================================================
 /**
 */
-class FaderoniAudioProcessorEditor : public AudioProcessorEditor,
-    public Slider::Listener
+class FaderoniAudioProcessorEditor : public AudioProcessorEditor, public Slider::Listener
 {
 public:
-    FaderoniAudioProcessorEditor(FaderoniAudioProcessor&);
+    FaderoniAudioProcessorEditor(FaderoniAudioProcessor&, AudioProcessorValueTreeState* parameters);
     ~FaderoniAudioProcessorEditor();
 
     TextEditor inputHost;
-    TextEditor inputOscPath;
+    TextEditor inputSubtree;
 
     void setVolume(float val);
+    void setPanning(int val);
 
     //==============================================================================
     void paint(Graphics&) override;
@@ -38,6 +40,7 @@ private:
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     FaderoniAudioProcessor& processor;
+    AudioProcessorValueTreeState* parameters;
 
     Label lblTitle;
     Label lblHost;
@@ -45,6 +48,8 @@ private:
     TextButton btnSend;
     Slider sliderVolume;
     Slider sliderPanning;
+    std::unique_ptr<SliderAttachment> volumeAttachment = nullptr;
+    std::unique_ptr<SliderAttachment> panningAttachment = nullptr;
 
     LookAndFeel_V4 faderoniLook;
     Font headerFont;
@@ -52,6 +57,7 @@ private:
     Colour accentColour;
 
     float prevVolume;
+    int prevPanning;
 
     String transformPanningValueToText(int midiValue) const;
     String transformVolumeValueToText(float value) const;

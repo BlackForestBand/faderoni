@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Source\MotuWebApi.cpp" />
+    <ClCompile Include="..\..\Source\ApiCommunicationTimer.cpp" />
     <ClCompile Include="..\..\Source\PluginProcessor.cpp" />
     <ClCompile Include="..\..\Source\PluginEditor.cpp" />
     <ClCompile Include="..\..\..\JUCE\modules\juce_audio_basics\buffers\juce_AudioChannelSet.cpp">
@@ -1959,6 +1960,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Source\MotuWebApi.h" />
+    <ClInclude Include="..\..\Source\ApiCommunicationTimer.h" />
     <ClInclude Include="..\..\Source\PluginProcessor.h" />
     <ClInclude Include="..\..\Source\PluginEditor.h" />
     <ClInclude Include="..\..\..\JUCE\modules\juce_audio_basics\audio_play_head\juce_AudioPlayHead.h" />
