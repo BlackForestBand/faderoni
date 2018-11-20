@@ -65,7 +65,10 @@ public:
     double transformVolumeMultiplicatorToValue(int value) const;
 
     void parameterChanged(const String& parameterID, float newValue) override;
+    void setHost(const String& string);
+    void setSubtree(const String& string);
 private:
+    MotuWebApi motuWebApi;
     ApiCommunicationTimer apiCommunicationTimer;
 
     AudioProcessorValueTreeState* parameters = nullptr;

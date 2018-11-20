@@ -4,8 +4,8 @@
 class MotuWebApi
 {
 public:
-    bool setVolume(String subtree, float value) const;
-    bool setPanning(String subtree, float value) const;
+    bool setVolume(const String& subtree, float value) const;
+    bool setPanning(const String& subtree, float value) const;
     void setHostname(String hostname);
 
     MotuWebApi();

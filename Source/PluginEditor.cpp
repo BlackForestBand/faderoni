@@ -11,11 +11,12 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include <math.h>
+#include <dshow.h>
 
 //==============================================================================
 FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcessor& p, AudioProcessorValueTreeState* parameters)
     : AudioProcessorEditor(&p), processor(p), faderoniLook(LookAndFeel_V4::getMidnightColourScheme()),
-      headerFont(30, Font::bold), bodyFont(15), accentColour(0, 200, 255), parameters(parameters)
+    headerFont(30, Font::bold), bodyFont(15), accentColour(0, 200, 255), parameters(parameters)
 {
     faderoniLook.setColour(Slider::trackColourId, accentColour);
     faderoniLook.setColour(Slider::thumbColourId, accentColour);
@@ -34,6 +35,8 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     lblOscPath.setFont(bodyFont);
 
     inputHost.setText("motu", false);
+    inputHost.onTextChange = [this]() { processor.setHost(inputHost.getText()); };
+    inputSubtree.onTextChange = [this]() { processor.setSubtree(inputSubtree.getText()); };
 
     btnSend.setButtonText("SEND");
     btnSend.setLookAndFeel(&faderoniLook);
@@ -84,6 +87,7 @@ FaderoniAudioProcessorEditor::~FaderoniAudioProcessorEditor()
     sliderPanning.setLookAndFeel(nullptr);
 }
 
+//==============================================================================
 void FaderoniAudioProcessorEditor::setVolume(float val)
 {
     if (val == prevVolume)

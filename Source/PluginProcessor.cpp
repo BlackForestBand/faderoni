@@ -11,6 +11,8 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
+// c-style parameter init func
+
 AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 {
     std::vector<std::unique_ptr<RangedAudioParameter>> params;
@@ -32,9 +34,7 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 
 //==============================================================================
 FaderoniAudioProcessor::FaderoniAudioProcessor()
-#ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(BusesProperties())
-#endif
+    : apiCommunicationTimer(motuWebApi)
 {
     parameters = new AudioProcessorValueTreeState(*this, nullptr, Identifier("Faderoni"), initParameterLayout());
     
@@ -43,7 +43,6 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
 
     apiCommunicationTimer.setVolumeParameter(volumeParameter);
     apiCommunicationTimer.setPanningParameter(panningParameter);
-
 
     parameters->addParameterListener("volume", this);
     parameters->addParameterListener("panning", this);
@@ -132,41 +131,14 @@ void FaderoniAudioProcessor::releaseResources()
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool FaderoniAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
-#if JucePlugin_IsMidiEffect
     ignoreUnused(layouts);
     return true;
-#else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
-        && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
-        return false;
-
-    // This checks if the input layout matches the output layout
-#if ! JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
-        return false;
-#endif
-
-    return true;
-#endif
 }
 #endif
 
 void FaderoniAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
 }
-
-/*
-void FaderoniAudioProcessor::processVolume(float volume)
-{
-    editor->setVolume(volume);
-}
-
-void FaderoniAudioProcessor::processPanning(int panning)
-{
-    editor->setPanning(panning);
-}*/
 
 //==============================================================================
 bool FaderoniAudioProcessor::hasEditor() const
@@ -220,24 +192,6 @@ float FaderoniAudioProcessor::transformVolumeValueToMultiplicator(float value) c
     return std::pow(10.0, value / 20.0);
 }
 
-float FaderoniAudioProcessor::transformPanningValueToMultiplicator(int value) const
-{
-    return value / 100.0;
-}
-
-
-double FaderoniAudioProcessor::transformVolumeMultiplicatorToValue(int value) const
-{
-    if (value <= 0)
-        return -48;
-    if (value == 1)
-        return 0;
-    if (value == 4)
-        return 12;
-
-    return 20 * std::log10(value);
-}
-
 void FaderoniAudioProcessor::parameterChanged(const String& parameterID, float newValue)
 {
     if (parameterID == "volume")
@@ -246,16 +200,12 @@ void FaderoniAudioProcessor::parameterChanged(const String& parameterID, float n
         editor->setPanning(newValue);
 }
 
-/*
-void FaderoniAudioProcessor::parameterValueChanged(int parameterIndex, float newValue)
+void FaderoniAudioProcessor::setHost(const String& hostname)
 {
-    if (parameterIndex == 0)
-        editor->setVolume(parameters->convertFrom0to1(newValue));
-    else if (parameterIndex == 1)
-        editor->setPanning(panning->convertFrom0to1(newValue));
+    motuWebApi.setHostname(hostname);
 }
 
-void FaderoniAudioProcessor::parameterGestureChanged(int parameterIndex, bool gestureIsStarting)
+void FaderoniAudioProcessor::setSubtree(const String& subtree)
 {
+    apiCommunicationTimer.setSubtree(subtree);
 }
-*/

@@ -1,6 +1,7 @@
 #include "MotuWebApi.h"
 
 
+//==============================================================================
 MotuWebApi::MotuWebApi()
 {
 }
@@ -9,17 +10,18 @@ MotuWebApi::~MotuWebApi()
 {
 }
 
-bool MotuWebApi::setVolume(String subtree, float value) const
+//==============================================================================
+bool MotuWebApi::setVolume(const String& subtree, float value) const
 {
-    return postJson("\"" + subtree + "/fader\": " + String(value, 4) + " }");
+    return postJson("{ \"" + subtree + "/fader\": " + String(value, 4) + " }");
 }
 
-bool MotuWebApi::setPanning(String subtree, float value) const
+bool MotuWebApi::setPanning(const String& subtree, float value) const
 {
-    return postJson("\"" + subtree + "/pan\": " + String(value, 4) + " }");
+    return postJson("{ \"" + subtree + "/pan\": " + String(value, 4) + " }");
 }
 
-void MotuWebApi::setHostname(String hostname)
+void MotuWebApi::setHostname(const String hostname)
 {
     this->hostname = hostname;
 }
@@ -30,12 +32,12 @@ bool MotuWebApi::postJson(const String& json) const
         .withPOSTData("json=" + json);
 
     StringPairArray responseHeaders;
-    int statusCode = 0;
+    auto statusCode = 0;
 
     ScopedPointer<InputStream> stream(
         url.createInputStream(true, nullptr, nullptr, { "Content-Type: application/x-www-form-urlencoded" },
-        10000, // timeout in millisecs
-        &responseHeaders, &statusCode));
+            10000, // timeout in millisecs
+            &responseHeaders, &statusCode));
 
     if (stream == nullptr)
         return false;
