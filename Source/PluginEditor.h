@@ -20,7 +20,7 @@ typedef AudioProcessorValueTreeState::ButtonAttachment ButtonAttachment;
 //==============================================================================
 /**
 */
-class FaderoniAudioProcessorEditor : public AudioProcessorEditor, public Slider::Listener
+class FaderoniAudioProcessorEditor : public AudioProcessorEditor
 {
 public:
     FaderoniAudioProcessorEditor(FaderoniAudioProcessor&, AudioProcessorValueTreeState* parameters);
@@ -63,8 +63,6 @@ private:
     String transformVolumeValueToText(float value) const;
     int transformPanningTextToValue(String text) const;
     int transformVolumeTextToValue(String text) const;
-
-    void sliderValueChanged(Slider* slider) override;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderoniAudioProcessorEditor)
 };

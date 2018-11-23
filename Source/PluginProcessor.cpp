@@ -10,7 +10,7 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
     params.push_back(std::make_unique<AudioParameterFloat>(
         "volume", // parameter ID
         "Volume", // parameter name
-        NormalisableRange<float>(-48.0f, 12.0f), // parameter range
+        NormalisableRange<float>(-48.0f, 12.0f, 0.1f), // parameter range
         0.0f));
     params.push_back(std::make_unique<AudioParameterInt>(
         "panning", // parameter ID
@@ -33,9 +33,6 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
 
     apiCommunicationTimer.setVolumeParameter(volumeParameter);
     apiCommunicationTimer.setPanningParameter(panningParameter);
-
-    parameters->addParameterListener("volume", this);
-    parameters->addParameterListener("panning", this);
 
     apiCommunicationTimer.startTimerHz(5);
 }
@@ -180,14 +177,6 @@ float FaderoniAudioProcessor::transformVolumeValueToMultiplicator(float value) c
         return 4;
 
     return std::pow(10.0, value / 20.0);
-}
-
-void FaderoniAudioProcessor::parameterChanged(const String& parameterID, float newValue)
-{
-    if (parameterID == "volume")
-        editor->setVolume(newValue);
-    else if (parameterID == "panning")
-        editor->setPanning(newValue);
 }
 
 void FaderoniAudioProcessor::setHost(const String& hostname)

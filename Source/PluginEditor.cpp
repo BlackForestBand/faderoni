@@ -10,7 +10,6 @@
 
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
-#include <math.h>
 #include <dshow.h>
 
 //==============================================================================
@@ -26,17 +25,19 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     // editor's size to whatever you need it to be.
     setSize(400, 300);
 
-    lblTitle.setText("Faderoni", dontSendNotification);
     lblTitle.setFont(headerFont);
+    lblTitle.setText("Faderoni", dontSendNotification);
 
-    lblHost.setText("API-Host:", dontSendNotification);
     lblHost.setFont(bodyFont);
-    lblOscPath.setText("OSC-Path:", dontSendNotification);
+    lblHost.setText("API-Host:", dontSendNotification);
     lblOscPath.setFont(bodyFont);
+    lblOscPath.setText("Path:", dontSendNotification);
 
-    inputHost.setText("motu", false);
     inputHost.onTextChange = [this]() { processor.setHost(inputHost.getText()); };
+    inputHost.setText("motu", true);
+
     inputSubtree.onTextChange = [this]() { processor.setSubtree(inputSubtree.getText()); };
+    inputSubtree.setText("mix/chan/0/matrix", true);
 
     btnSend.setButtonText("SEND");
     btnSend.setLookAndFeel(&faderoniLook);
@@ -51,7 +52,6 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     sliderVolume.valueFromTextFunction = [this](const String text) { return transformVolumeTextToValue(text); };
     sliderVolume.setDoubleClickReturnValue(true, 102);
     sliderVolume.setValue(0);
-    sliderVolume.addListener(this);
 
     // these define the parameters of our slider object
     sliderPanning.setSliderStyle(Slider::RotaryHorizontalDrag);
@@ -167,14 +167,6 @@ int FaderoniAudioProcessorEditor::transformVolumeTextToValue(String text) const
     }
     catch (std::invalid_argument ex) { return 102; }
     catch (std::out_of_range ex) { return 102; }
-}
-
-void FaderoniAudioProcessorEditor::sliderValueChanged(Slider* slider)
-{
-    if (slider == &sliderVolume)
-        processor.setVolume(slider->getValue());
-    else if (slider == &sliderPanning)
-        processor.setPanning(slider->getValue());
 }
 
 String FaderoniAudioProcessorEditor::transformPanningValueToText(int value) const

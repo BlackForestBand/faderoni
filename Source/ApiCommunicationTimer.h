@@ -24,6 +24,6 @@ private:
     MotuWebApi& motuWebApi;
 
     void timerCallback() override;
-    static float transformPanningValueToMultiplicator(int value);
-    static double transformVolumeValueToMultiplicator(int value);
+    static float transformPanningValueToMultiplicator(float value);
+    static double transformVolumeValueToMultiplicator(float value);
 };

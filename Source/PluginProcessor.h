@@ -18,7 +18,7 @@
 //==============================================================================
 /**
 */
-class FaderoniAudioProcessor : public AudioProcessor, public AudioProcessorValueTreeState::Listener
+class FaderoniAudioProcessor : public AudioProcessor
 {
 public:
     //==============================================================================
@@ -64,7 +64,6 @@ public:
     float transformPanningValueToMultiplicator(int value) const;
     double transformVolumeMultiplicatorToValue(int value) const;
 
-    void parameterChanged(const String& parameterID, float newValue) override;
     void setHost(const String& string);
     void setSubtree(const String& string);
 private:

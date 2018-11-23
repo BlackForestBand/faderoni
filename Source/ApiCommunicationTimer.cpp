@@ -36,13 +36,13 @@ void ApiCommunicationTimer::timerCallback()
     }
 }
 
-float ApiCommunicationTimer::transformPanningValueToMultiplicator(int value)
+float ApiCommunicationTimer::transformPanningValueToMultiplicator(float value)
 {
     return value / 100.0;
 }
 
 
-double ApiCommunicationTimer::transformVolumeValueToMultiplicator(int value)
+double ApiCommunicationTimer::transformVolumeValueToMultiplicator(float value)
 {
     if (value == -48)
         return 0;
