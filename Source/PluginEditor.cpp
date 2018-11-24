@@ -34,10 +34,10 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     lblOscPath.setText("Path:", dontSendNotification);
 
     inputHost.onTextChange = [this]() { processor.setHost(inputHost.getText()); };
-    inputHost.setText("motu", true);
+    inputHost.setText(parameters->getParameterAsValue("hostname").getValue(), true);
 
     inputSubtree.onTextChange = [this]() { processor.setSubtree(inputSubtree.getText()); };
-    inputSubtree.setText("mix/chan/0/matrix", true);
+    inputSubtree.setText(parameters->getParameterAsValue("subtree").getValue(), true);
 
     btnSend.setButtonText("SEND");
     btnSend.setLookAndFeel(&faderoniLook);

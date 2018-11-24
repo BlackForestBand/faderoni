@@ -26,6 +26,11 @@ void MotuWebApi::setHostname(const String hostname)
     this->hostname = hostname;
 }
 
+void MotuWebApi::setTimeout(const int& timeout)
+{
+    this->timeout = timeout;
+}
+
 bool MotuWebApi::postJson(const String& json) const
 {
     URL url = URL("http://" + hostname + "/datastore")
@@ -36,8 +41,7 @@ bool MotuWebApi::postJson(const String& json) const
 
     ScopedPointer<InputStream> stream(
         url.createInputStream(true, nullptr, nullptr, { "Content-Type: application/x-www-form-urlencoded" },
-            10000, // timeout in millisecs
-            &responseHeaders, &statusCode));
+            timeout, &responseHeaders, &statusCode));
 
     if (stream == nullptr)
         return false;

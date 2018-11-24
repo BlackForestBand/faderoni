@@ -73,6 +73,8 @@ private:
     AudioProcessorValueTreeState* parameters = nullptr;
     AudioParameterFloat* volumeParameter = nullptr;
     AudioParameterInt* panningParameter = nullptr;
+    ValueTree hostnameParameter;
+    ValueTree subtreeParameter;
 
     FaderoniAudioProcessorEditor* editor;
 

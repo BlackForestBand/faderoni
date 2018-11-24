@@ -26,6 +26,8 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 FaderoniAudioProcessor::FaderoniAudioProcessor()
     : apiCommunicationTimer(motuWebApi)
 {
+    motuWebApi.setTimeout(1); // dont wait for the calls to complete
+
     parameters = new AudioProcessorValueTreeState(*this, nullptr, Identifier("Faderoni"), initParameterLayout());
     
     volumeParameter = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume"));
@@ -33,7 +35,6 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
 
     apiCommunicationTimer.setVolumeParameter(volumeParameter);
     apiCommunicationTimer.setPanningParameter(panningParameter);
-
     apiCommunicationTimer.startTimerHz(5);
 }
 
@@ -141,12 +142,39 @@ AudioProcessorEditor* FaderoniAudioProcessor::createEditor()
 //==============================================================================
 void FaderoniAudioProcessor::getStateInformation(MemoryBlock& destData)
 {
+    auto state = parameters->copyState();
+    const std::unique_ptr<XmlElement> xml(state.createXml());
+    copyXmlToBinary(*xml, destData);
 }
 
 void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    const std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
+    if (xmlState == nullptr)
+        return;
+
+    if (xmlState->hasTagName(parameters->state.getType()))
+        parameters->replaceState(ValueTree::fromXml(*xmlState));
+
+    hostnameParameter = parameters->state.getChildWithProperty("id", "hostname");
+
+    if (!hostnameParameter.isValid())
+    {
+        hostnameParameter = ValueTree("PARAM");
+        hostnameParameter.setProperty("id", "hostname", nullptr);
+        hostnameParameter.setProperty("value", "motu", nullptr);
+        parameters->state.appendChild(hostnameParameter, nullptr);
+    }
+
+    subtreeParameter = parameters->state.getChildWithProperty("id", "subtree");
+
+    if (!subtreeParameter.isValid())
+    {
+        subtreeParameter = ValueTree("PARAM");
+        subtreeParameter.setProperty("id", "subtree", nullptr);
+        subtreeParameter.setProperty("value", "mix/chan/0/matrix", nullptr);
+        parameters->state.appendChild(subtreeParameter, nullptr);
+    }
 }
 
 void FaderoniAudioProcessor::setVolume(float volume)
@@ -182,9 +210,11 @@ float FaderoniAudioProcessor::transformVolumeValueToMultiplicator(float value) c
 void FaderoniAudioProcessor::setHost(const String& hostname)
 {
     motuWebApi.setHostname(hostname);
+    hostnameParameter.setProperty("value", hostname, nullptr);
 }
 
 void FaderoniAudioProcessor::setSubtree(const String& subtree)
 {
     apiCommunicationTimer.setSubtree(subtree);
+    subtreeParameter.setProperty("value", subtree, nullptr);
 }
