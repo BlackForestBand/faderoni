@@ -64,7 +64,7 @@ public:
     float transformVolumeValueToMultiplicator(float value) const;
 
     void setHost(const String& string);
-    void setSubtree(const int& channel, const String subtree);
+    void setSubtree(const int& channel, const String& subtree);
     void setAmountOfChannels(const int& amount);
 private:
     MotuWebApi motuWebApi;

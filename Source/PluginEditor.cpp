@@ -18,13 +18,14 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     : AudioProcessorEditor(&p), processor(p), faderoniLook(LookAndFeel_V4::getMidnightColourScheme()),
     headerFont(30, Font::bold), bodyFont(15), accentColour(0, 200, 255), parameters(parameters)
 {
+    amountOfChannels = parameters->getParameterAsValue("amount_of_channels").getValue();
+
     faderoniLook.setColour(Slider::trackColourId, accentColour);
     faderoniLook.setColour(Slider::thumbColourId, accentColour);
 
 
     // Make sure that before the constructor has finished, you've set the
     // editor's size to whatever you need it to be.
-    setSize(400, 300);
 
     lblTitle.setFont(headerFont);
     lblTitle.setText("Faderoni", dontSendNotification);
@@ -33,7 +34,7 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     lblHost.setText("API-Host:", dontSendNotification);
 
     inputHost.onTextChange = [this]() { processor.setHost(inputHost.getText()); };
-    inputHost.setText(parameters->getParameterAsValue("hostname").getValue(), true);
+    inputHost.setText(parameters->getParameterAsValue("hostname").getValue(), false);
 
     addAndMakeVisible(&lblTitle);
     addAndMakeVisible(&lblHost);
@@ -45,7 +46,7 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
         lblSubtrees[i].setText("Path:", dontSendNotification);
 
         inputSubtrees[i].onTextChange = [this, i]() { processor.setSubtree(i, inputSubtrees[i].getText()); };
-        inputSubtrees[i].setText(parameters->getParameterAsValue("subtree").getValue(), true);
+        inputSubtrees[i].setText(parameters->getParameterAsValue("subtree_" + i).getValue(), false);
 
         // these define the parameters of our volume slider object
         sliderVolumes[i].setSliderStyle(Slider::LinearVertical);
@@ -79,6 +80,11 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
         volumeAttachments[i].reset(new SliderAttachment(*parameters, "volume_" + String(i), sliderVolumes[i]));
         panningAttachments[i].reset(new SliderAttachment(*parameters, "panning_" + String(i), sliderPannings[i]));
     }
+
+    setResizable(false, false);
+    const auto width = 30 + min(amountOfChannels, 3) * 250;
+    const auto height = std::ceil(amountOfChannels / 3) * 200;
+    setSize(width, height);
 }
 
 FaderoniAudioProcessorEditor::~FaderoniAudioProcessorEditor()
@@ -130,10 +136,8 @@ void FaderoniAudioProcessorEditor::paint(Graphics& g)
 
 void FaderoniAudioProcessorEditor::resized()
 {
-    setResizable(false, false);
-    const auto width = 30 + min(amountOfChannels, 3) * 250;
-    const auto height = std::ceil(amountOfChannels / 3) * 200;
-    setBounds(0, 0, width, height);
+    const auto width = getWidth();
+    const auto height = getHeight();
 
     static const auto inputHeight = 20;
 
@@ -146,6 +150,10 @@ void FaderoniAudioProcessorEditor::resized()
     inputHost.setJustification(Justification::Flags::centredLeft);
 
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        const auto col = i % 3;
+        const auto row = static_cast<int>(i / 3);
+        sliderVolumes[i].setBounds(col * 250 + 50, row * 200 + 50, 20, 100);
+        sliderVolumes[i].setLookAndFeel(&faderoniLook);
       /*  lblSubtrees[i].setBounds();
         inputSubtrees[i].setBounds();
 

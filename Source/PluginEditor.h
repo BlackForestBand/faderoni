@@ -41,8 +41,6 @@ private:
     FaderoniAudioProcessor& processor;
     AudioProcessorValueTreeState* parameters;
 
-    int amountOfChannels = FADERONI_MAX_CHANNELS;
-
     Label lblTitle;
     Label lblHost;
     Label lblAmountOfChannels;
@@ -56,6 +54,7 @@ private:
 
     std::unique_ptr<SliderAttachment> volumeAttachments[FADERONI_MAX_CHANNELS];
     std::unique_ptr<SliderAttachment> panningAttachments[FADERONI_MAX_CHANNELS];
+    int amountOfChannels = FADERONI_MAX_CHANNELS;
 
     LookAndFeel_V4 faderoniLook;
     Font headerFont;

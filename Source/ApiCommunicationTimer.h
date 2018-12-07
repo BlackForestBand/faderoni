@@ -12,13 +12,15 @@ public:
 
     void setVolumeParameter(int channel, AudioParameterFloat* volume);
     void setPanningParameter(int channel, AudioParameterInt* panning);
-    void setSubtree(int channel, String subtree);
+    void setSubtree(int channel, const String& subtree);
     void setAmountOfChannels(const int& amount);
 
 private:
+    SpinLock syncRoot;
+
     AudioParameterFloat* volumes[FADERONI_MAX_CHANNELS]{};
     AudioParameterInt* pannings[FADERONI_MAX_CHANNELS]{};
-    String subtrees[8];
+    Array<String, SpinLock> subtrees;
 
     float prevVolumes[FADERONI_MAX_CHANNELS]{};
     float prevPannings[FADERONI_MAX_CHANNELS]{};

@@ -174,18 +174,18 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
     {
         amountOfChannelsParameter = ValueTree("PARAM");
         amountOfChannelsParameter.setProperty("id", "amount_of_channels", nullptr);
-        amountOfChannelsParameter.setProperty("value", "3", nullptr);
+        amountOfChannelsParameter.setProperty("value", 3, nullptr);
         parameters->state.appendChild(amountOfChannelsParameter, nullptr);
     }
 
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
-        subtreeParameters[i] = parameters->state.getChildWithProperty("id", "subtree_" + i);
+        subtreeParameters[i] = parameters->state.getChildWithProperty("id", "subtree_" + String(i));
 
         if (!subtreeParameters[i].isValid())
         {
             subtreeParameters[i] = ValueTree("PARAM");
-            subtreeParameters[i].setProperty("id", "subtree_" + i, nullptr);
-            subtreeParameters[i].setProperty("value", "mix/chan/0/matrix", nullptr);
+            subtreeParameters[i].setProperty("id", "subtree_" + String(i), nullptr);
+            subtreeParameters[i].setProperty("value", "mix/chan/" + String(i) + "/matrix", nullptr);
             parameters->state.appendChild(subtreeParameters[i], nullptr);
         }
     }

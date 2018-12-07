@@ -5,6 +5,7 @@
 ApiCommunicationTimer::ApiCommunicationTimer(MotuWebApi& motuWebApi)
     : motuWebApi(motuWebApi)
 {
+    subtrees.ensureStorageAllocated(FADERONI_MAX_CHANNELS);
 }
 
 //==============================================================================
