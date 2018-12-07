@@ -29,12 +29,14 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
     motuWebApi.setTimeout(1); // dont wait for the calls to complete
 
     parameters = new AudioProcessorValueTreeState(*this, nullptr, Identifier("Faderoni"), initParameterLayout());
-    
-    volumeParameter = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume"));
-    panningParameter = dynamic_cast<AudioParameterInt*>(parameters->getParameter("panning"));
 
-    apiCommunicationTimer.setVolumeParameter(volumeParameter);
-    apiCommunicationTimer.setPanningParameter(panningParameter);
+    for (int i = 0; i < 8; i++) {
+        volumeParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume_" + i));
+        panningParameters[i] = dynamic_cast<AudioParameterInt*>(parameters->getParameter("panning_" + i));
+        apiCommunicationTimer.setVolumeParameter(i, volumeParameters[i]);
+        apiCommunicationTimer.setPanningParameter(i, panningParameters[i]);
+    }
+
     apiCommunicationTimer.startTimerHz(5);
 }
 
@@ -166,25 +168,37 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
         parameters->state.appendChild(hostnameParameter, nullptr);
     }
 
-    subtreeParameter = parameters->state.getChildWithProperty("id", "subtree");
+    amountOfChannelsParameter = parameters->state.getChildWithProperty("id", "amount_of_channels");
 
-    if (!subtreeParameter.isValid())
+    if (!amountOfChannelsParameter.isValid())
     {
-        subtreeParameter = ValueTree("PARAM");
-        subtreeParameter.setProperty("id", "subtree", nullptr);
-        subtreeParameter.setProperty("value", "mix/chan/0/matrix", nullptr);
-        parameters->state.appendChild(subtreeParameter, nullptr);
+        amountOfChannelsParameter = ValueTree("PARAM");
+        amountOfChannelsParameter.setProperty("id", "amount_of_channels", nullptr);
+        amountOfChannelsParameter.setProperty("value", "3", nullptr);
+        parameters->state.appendChild(amountOfChannelsParameter, nullptr);
+    }
+
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        subtreeParameters[i] = parameters->state.getChildWithProperty("id", "subtree_" + i);
+
+        if (!subtreeParameters[i].isValid())
+        {
+            subtreeParameters[i] = ValueTree("PARAM");
+            subtreeParameters[i].setProperty("id", "subtree_" + i, nullptr);
+            subtreeParameters[i].setProperty("value", "mix/chan/0/matrix", nullptr);
+            parameters->state.appendChild(subtreeParameters[i], nullptr);
+        }
     }
 }
 
-void FaderoniAudioProcessor::setVolume(float volume)
+void FaderoniAudioProcessor::setVolume(const int& channel, float volume)
 {
-    volumeParameter->setValueNotifyingHost(volumeParameter->convertTo0to1(volume));
+    volumeParameters[channel]->setValueNotifyingHost(volumeParameters[channel]->convertTo0to1(volume));
 }
 
-void FaderoniAudioProcessor::setPanning(int panning)
+void FaderoniAudioProcessor::setPanning(const int& channel, int panning)
 {
-    panningParameter->setValueNotifyingHost(panningParameter->convertTo0to1(panning));
+    panningParameters[channel]->setValueNotifyingHost(panningParameters[channel]->convertTo0to1(panning));
 }
 
 //==============================================================================
@@ -213,8 +227,14 @@ void FaderoniAudioProcessor::setHost(const String& hostname)
     hostnameParameter.setProperty("value", hostname, nullptr);
 }
 
-void FaderoniAudioProcessor::setSubtree(const String& subtree)
+void FaderoniAudioProcessor::setSubtree(const int& channel, const String& subtree)
 {
-    apiCommunicationTimer.setSubtree(subtree);
-    subtreeParameter.setProperty("value", subtree, nullptr);
+    apiCommunicationTimer.setSubtree(channel, subtree);
+    subtreeParameters[channel].setProperty("value", subtree, nullptr);
+}
+
+void FaderoniAudioProcessor::setAmountOfChannels(const int& amount)
+{
+    apiCommunicationTimer.setAmountOfChannels(amount);
+    amountOfChannelsParameter.setProperty("value", String(amount), nullptr);
 }

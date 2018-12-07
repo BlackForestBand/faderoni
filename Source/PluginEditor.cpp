@@ -11,6 +11,7 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include <dshow.h>
+#include <math.h>
 
 //==============================================================================
 FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcessor& p, AudioProcessorValueTreeState* parameters)
@@ -30,80 +31,86 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
 
     lblHost.setFont(bodyFont);
     lblHost.setText("API-Host:", dontSendNotification);
-    lblOscPath.setFont(bodyFont);
-    lblOscPath.setText("Path:", dontSendNotification);
 
     inputHost.onTextChange = [this]() { processor.setHost(inputHost.getText()); };
     inputHost.setText(parameters->getParameterAsValue("hostname").getValue(), true);
 
-    inputSubtree.onTextChange = [this]() { processor.setSubtree(inputSubtree.getText()); };
-    inputSubtree.setText(parameters->getParameterAsValue("subtree").getValue(), true);
-
-    btnSend.setButtonText("SEND");
-    btnSend.setLookAndFeel(&faderoniLook);
-
-    // these define the parameters of our volume slider object
-    sliderVolume.setSliderStyle(Slider::LinearVertical);
-    sliderVolume.setRange(-48, 12, 0.1);
-    sliderVolume.setPopupDisplayEnabled(true, false, this);
-    sliderVolume.setLookAndFeel(&faderoniLook);
-    sliderVolume.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 60, 20);
-    sliderVolume.textFromValueFunction = [this](const double val) { return transformVolumeValueToText(val); };
-    sliderVolume.valueFromTextFunction = [this](const String text) { return transformVolumeTextToValue(text); };
-    sliderVolume.setDoubleClickReturnValue(true, 102);
-    sliderVolume.setValue(0);
-
-    // these define the parameters of our slider object
-    sliderPanning.setSliderStyle(Slider::RotaryHorizontalDrag);
-    sliderPanning.setRange(-100, 100, 1);
-    sliderPanning.setPopupDisplayEnabled(true, false, this);
-    sliderPanning.setLookAndFeel(&faderoniLook);
-    sliderPanning.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 100, 20);
-    sliderPanning.textFromValueFunction = [this](const double val) { return transformPanningValueToText(val); };
-    sliderPanning.valueFromTextFunction = [this](const String text) { return transformPanningTextToValue(text); };
-    sliderPanning.setDoubleClickReturnValue(true, 64);
-    sliderPanning.setValue(0);
-
-
-    // this function adds the slider to the editor
     addAndMakeVisible(&lblTitle);
     addAndMakeVisible(&lblHost);
-    addAndMakeVisible(&lblOscPath);
     addAndMakeVisible(&inputHost);
-    addAndMakeVisible(&inputSubtree);
-    addAndMakeVisible(&btnSend);
-    addAndMakeVisible(&sliderVolume);
-    addAndMakeVisible(&sliderPanning);
 
-    // slider attachments for automation
-    volumeAttachment.reset(new SliderAttachment(*parameters, "volume", sliderVolume));
-    panningAttachment.reset(new SliderAttachment(*parameters, "panning", sliderPanning));
+
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        lblSubtrees[i].setFont(bodyFont);
+        lblSubtrees[i].setText("Path:", dontSendNotification);
+
+        inputSubtrees[i].onTextChange = [this, i]() { processor.setSubtree(i, inputSubtrees[i].getText()); };
+        inputSubtrees[i].setText(parameters->getParameterAsValue("subtree").getValue(), true);
+
+        // these define the parameters of our volume slider object
+        sliderVolumes[i].setSliderStyle(Slider::LinearVertical);
+        sliderVolumes[i].setRange(-48, 12, 0.1);
+        sliderVolumes[i].setPopupDisplayEnabled(true, false, this);
+        sliderVolumes[i].setLookAndFeel(&faderoniLook);
+        sliderVolumes[i].setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 60, 20);
+        sliderVolumes[i].textFromValueFunction = [this](const double val) { return transformVolumeValueToText(val); };
+        sliderVolumes[i].valueFromTextFunction = [this](const String text) { return transformVolumeTextToValue(text); };
+        sliderVolumes[i].setDoubleClickReturnValue(true, 102);
+        sliderVolumes[i].setValue(0);
+
+        // these define the parameters of our slider object
+        sliderPannings[i].setSliderStyle(Slider::RotaryHorizontalDrag);
+        sliderPannings[i].setRange(-100, 100, 1);
+        sliderPannings[i].setPopupDisplayEnabled(true, false, this);
+        sliderPannings[i].setLookAndFeel(&faderoniLook);
+        sliderPannings[i].setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 100, 20);
+        sliderPannings[i].textFromValueFunction = [this](const double val) { return transformPanningValueToText(val); };
+        sliderPannings[i].valueFromTextFunction = [this](const String text) { return transformPanningTextToValue(text); };
+        sliderPannings[i].setDoubleClickReturnValue(true, 64);
+        sliderPannings[i].setValue(0);
+
+
+        // this function adds the slider to the editor
+        addAndMakeVisible(&sliderVolumes[i]);
+        addAndMakeVisible(&sliderPannings[i]);
+        addAndMakeVisible(&inputSubtrees[i]);
+
+        // slider attachments for automation
+        volumeAttachments[i].reset(new SliderAttachment(*parameters, "volume_" + String(i), sliderVolumes[i]));
+        panningAttachments[i].reset(new SliderAttachment(*parameters, "panning_" + String(i), sliderPannings[i]));
+    }
 }
 
 FaderoniAudioProcessorEditor::~FaderoniAudioProcessorEditor()
 {
-    btnSend.setLookAndFeel(nullptr);
-    sliderVolume.setLookAndFeel(nullptr);
-    sliderPanning.setLookAndFeel(nullptr);
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        sliderVolumes[i].setLookAndFeel(nullptr);
+        sliderPannings[i].setLookAndFeel(nullptr);
+    }
 }
 
 //==============================================================================
-void FaderoniAudioProcessorEditor::setVolume(float val)
+void FaderoniAudioProcessorEditor::setVolume(const int& channel, const float& val)
 {
-    if (val == prevVolume)
+    if (val == prevVolumes[channel])
         return;
 
-    prevVolume = val;
-    sliderVolume.setValue(val, dontSendNotification);
+    prevVolumes[channel] = val;
+    sliderVolumes[channel].setValue(val, dontSendNotification);
 }
 
-void FaderoniAudioProcessorEditor::setPanning(int val)
+void FaderoniAudioProcessorEditor::setPanning(const int& channel, const int& val)
 {
-    if (val == prevPanning)
+    if (val == prevPannings[channel])
         return;
 
-    prevPanning = val;
-    sliderPanning.setValue(val, dontSendNotification);
+    prevPannings[channel] = val;
+    sliderPannings[channel].setValue(val, dontSendNotification);
+}
+
+void FaderoniAudioProcessorEditor::setAmountOfChannels(const int& amount)
+{
+    amountOfChannels = amount;
 }
 
 //==============================================================================
@@ -123,23 +130,28 @@ void FaderoniAudioProcessorEditor::paint(Graphics& g)
 
 void FaderoniAudioProcessorEditor::resized()
 {
-    const auto height = getHeight();
-    static const auto padX = 40;
-    static const auto padY = 30;
+    setResizable(false, false);
+    const auto width = 30 + min(amountOfChannels, 3) * 250;
+    const auto height = std::ceil(amountOfChannels / 3) * 200;
+    setBounds(0, 0, width, height);
+
     static const auto inputHeight = 20;
 
-    lblTitle.setBounds(120, padY, 150, 40);
+    lblTitle.setBounds(0, 0, width, 30);
+    lblTitle.setJustificationType(Justification::Flags::centred);
 
-    lblHost.setBounds(120, padY + 50, 100, inputHeight);
-    lblOscPath.setBounds(120, padY + 80, 100, inputHeight);
+    lblHost.setBounds(0, 0, 70, 30);
+    lblHost.setJustificationType(Justification::Flags::centredLeft);
+    inputHost.setBounds(100, 0, 100, 30);
+    inputHost.setJustification(Justification::Flags::centredLeft);
 
-    inputHost.setBounds(220, padY + 50, 150, inputHeight);
-    inputSubtree.setBounds(220, padY + 80, 150, inputHeight);
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+      /*  lblSubtrees[i].setBounds();
+        inputSubtrees[i].setBounds();
 
-    btnSend.setBounds(250, padY + 170, 120, height - 170 - 2 * padY);
-
-    sliderVolume.setBounds(padX, padY, 60, height - 2 * padY);
-    sliderPanning.setBounds(120, height - 100 - padY, 100, 100);
+        sliderVolumes[i].setBounds();
+        sliderPannings[i].setBounds();*/
+    }
 }
 
 int FaderoniAudioProcessorEditor::transformPanningTextToValue(String text) const

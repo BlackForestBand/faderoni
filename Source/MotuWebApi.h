@@ -1,4 +1,5 @@
 #pragma once
+#include "FaderoniConstants.h"
 #include "../JuceLibraryCode/JuceHeader.h"
 
 class MotuWebApi

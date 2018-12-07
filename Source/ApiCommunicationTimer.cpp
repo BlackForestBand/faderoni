@@ -3,36 +3,45 @@
 
 //==============================================================================
 ApiCommunicationTimer::ApiCommunicationTimer(MotuWebApi& motuWebApi)
-    : motuWebApi(motuWebApi) { }
+    : motuWebApi(motuWebApi)
+{
+}
 
 //==============================================================================
-void ApiCommunicationTimer::setVolumeParameter(AudioParameterFloat* volume)
+void ApiCommunicationTimer::setVolumeParameter(int channel, AudioParameterFloat* volume)
 {
-    this->volume = volume;
+    this->volumes[channel] = volume;
 }
 
-void ApiCommunicationTimer::setPanningParameter(AudioParameterInt* panning)
+void ApiCommunicationTimer::setPanningParameter(int channel, AudioParameterInt* panning)
 {
-    this->panning = panning;
+    this->pannings[channel] = panning;
 }
 
-void ApiCommunicationTimer::setSubtree(const String& subtree)
+void ApiCommunicationTimer::setSubtree(int channel, const String& subtree)
 {
-    this->subtree = subtree;
+    this->subtrees[channel] = subtree;
+}
+
+void ApiCommunicationTimer::setAmountOfChannels(const int& amount)
+{
+    this->amountOfchannels = amount;
 }
 
 void ApiCommunicationTimer::timerCallback()
 {
-    if (*volume != prevVolume)
-    {
-        prevVolume = *volume;
-        motuWebApi.setVolume(subtree, transformVolumeValueToMultiplicator(prevVolume));
-    }
+    for (auto i = 0; i < amountOfchannels; i++) {
+        if (*volumes[i] != prevVolumes[i])
+        {
+            prevVolumes[i] = *volumes[i];
+            motuWebApi.setVolume(subtrees[i], transformVolumeValueToMultiplicator(prevVolumes[i]));
+        }
 
-    if (*panning != prevPanning)
-    {
-        prevPanning = *panning;
-        motuWebApi.setPanning(subtree, transformPanningValueToMultiplicator(prevPanning));
+        if (*pannings[i] != prevPannings[i])
+        {
+            prevPannings[i] = *pannings[i];
+            motuWebApi.setPanning(subtrees[i], transformPanningValueToMultiplicator(prevPannings[i]));
+        }
     }
 }
 

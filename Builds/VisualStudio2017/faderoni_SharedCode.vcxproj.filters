@@ -4529,6 +4529,9 @@
     <ClInclude Include="..\..\Source\ApiCommunicationTimer.h">
       <Filter>faderoni\Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Source\FaderoniConstants.h">
+      <Filter>faderoni\Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\JUCE\modules\juce_audio_formats\codecs\flac\Flac Licence.txt">

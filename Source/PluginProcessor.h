@@ -11,6 +11,7 @@
 #pragma once
 
 #include "../JuceLibraryCode/JuceHeader.h"
+#include "FaderoniConstants.h"
 #include "MotuWebApi.h"
 #include "PluginEditor.h"
 #include "APICommunicationTimer.h"
@@ -58,23 +59,23 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    void setVolume(float volume);
-    void setPanning(int panning);
+    void setVolume(const int& channel, float volume);
+    void setPanning(const int& channel, int panning);
     float transformVolumeValueToMultiplicator(float value) const;
-    float transformPanningValueToMultiplicator(int value) const;
-    double transformVolumeMultiplicatorToValue(int value) const;
 
     void setHost(const String& string);
-    void setSubtree(const String& string);
+    void setSubtree(const int& channel, const String subtree);
+    void setAmountOfChannels(const int& amount);
 private:
     MotuWebApi motuWebApi;
     ApiCommunicationTimer apiCommunicationTimer;
 
     AudioProcessorValueTreeState* parameters = nullptr;
-    AudioParameterFloat* volumeParameter = nullptr;
-    AudioParameterInt* panningParameter = nullptr;
     ValueTree hostnameParameter;
-    ValueTree subtreeParameter;
+    ValueTree amountOfChannelsParameter;
+    AudioParameterFloat* volumeParameters[8];
+    AudioParameterInt* panningParameters[8];
+    ValueTree subtreeParameters[8];
 
     FaderoniAudioProcessorEditor* editor;
 

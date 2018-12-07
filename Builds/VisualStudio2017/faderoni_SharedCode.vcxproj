@@ -1959,6 +1959,7 @@
     <ClCompile Include="..\..\JuceLibraryCode\include_juce_video.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Source\FaderoniConstants.h" />
     <ClInclude Include="..\..\Source\MotuWebApi.h" />
     <ClInclude Include="..\..\Source\ApiCommunicationTimer.h" />
     <ClInclude Include="..\..\Source\PluginProcessor.h" />
