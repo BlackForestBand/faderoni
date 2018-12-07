@@ -46,14 +46,14 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
         lblSubtrees[i].setText("Path:", dontSendNotification);
 
         inputSubtrees[i].onTextChange = [this, i]() { processor.setSubtree(i, inputSubtrees[i].getText()); };
-        inputSubtrees[i].setText(parameters->getParameterAsValue("subtree_" + i).getValue(), false);
+        inputSubtrees[i].setText(parameters->getParameterAsValue("subtree_" + String(i)).getValue(), false);
 
         // these define the parameters of our volume slider object
         sliderVolumes[i].setSliderStyle(Slider::LinearVertical);
         sliderVolumes[i].setRange(-48, 12, 0.1);
         sliderVolumes[i].setPopupDisplayEnabled(true, false, this);
         sliderVolumes[i].setLookAndFeel(&faderoniLook);
-        sliderVolumes[i].setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 60, 20);
+        sliderVolumes[i].setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 80, 20);
         sliderVolumes[i].textFromValueFunction = [this](const double val) { return transformVolumeValueToText(val); };
         sliderVolumes[i].valueFromTextFunction = [this](const String text) { return transformVolumeTextToValue(text); };
         sliderVolumes[i].setDoubleClickReturnValue(true, 102);
@@ -64,7 +64,7 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
         sliderPannings[i].setRange(-100, 100, 1);
         sliderPannings[i].setPopupDisplayEnabled(true, false, this);
         sliderPannings[i].setLookAndFeel(&faderoniLook);
-        sliderPannings[i].setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 100, 20);
+        sliderPannings[i].setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 60, 20);
         sliderPannings[i].textFromValueFunction = [this](const double val) { return transformPanningValueToText(val); };
         sliderPannings[i].valueFromTextFunction = [this](const String text) { return transformPanningTextToValue(text); };
         sliderPannings[i].setDoubleClickReturnValue(true, 64);
@@ -152,8 +152,8 @@ void FaderoniAudioProcessorEditor::resized()
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         const auto col = i % 3;
         const auto row = static_cast<int>(i / 3);
-        sliderVolumes[i].setBounds(col * 250 + 50, row * 200 + 50, 20, 100);
-        sliderVolumes[i].setLookAndFeel(&faderoniLook);
+        sliderVolumes[i].setBounds(col * 250 + 50, row * 200 + 30, 80, 100);
+        sliderPannings[i].setBounds(col * 250 + 150, row * 200 + 40, 60, 100);
       /*  lblSubtrees[i].setBounds();
         inputSubtrees[i].setBounds();
 
@@ -213,9 +213,9 @@ String FaderoniAudioProcessorEditor::transformVolumeValueToText(float value) con
     else
     {
         if (value > 0)
-            volumeString = "+" + String(value);
+            volumeString = "+" + String(value, 1);
         else
-            volumeString = String(value);
+            volumeString = String(value, 1);
     }
 
     return volumeString + " dB";

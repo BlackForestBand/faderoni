@@ -7,17 +7,19 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 {
     std::vector<std::unique_ptr<RangedAudioParameter>> params;
 
-    params.push_back(std::make_unique<AudioParameterFloat>(
-        "volume", // parameter ID
-        "Volume", // parameter name
-        NormalisableRange<float>(-48.0f, 12.0f, 0.1f), // parameter range
-        0.0f));
-    params.push_back(std::make_unique<AudioParameterInt>(
-        "panning", // parameter ID
-        "Panning", // parameter name
-        -100,
-        100, // parameter range
-        0));
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        params.push_back(std::make_unique<AudioParameterFloat>(
+            "volume_" + String(i), // parameter ID
+            "Volume", // parameter name
+            NormalisableRange<float>(-48.0f, 12.0f, 0.1f), // parameter range
+            0.0f));
+        params.push_back(std::make_unique<AudioParameterInt>(
+            "panning_" + String(i), // parameter ID
+            "Panning", // parameter name
+            -100,
+            100, // parameter range
+            0));
+    }
 
     return { params.begin(), params.end() };
 }
@@ -27,12 +29,12 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
     : apiCommunicationTimer(motuWebApi)
 {
     motuWebApi.setTimeout(1); // dont wait for the calls to complete
-
+    
     parameters = new AudioProcessorValueTreeState(*this, nullptr, Identifier("Faderoni"), initParameterLayout());
 
-    for (int i = 0; i < 8; i++) {
-        volumeParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume_" + i));
-        panningParameters[i] = dynamic_cast<AudioParameterInt*>(parameters->getParameter("panning_" + i));
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        volumeParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume_" + String(i)));
+        panningParameters[i] = dynamic_cast<AudioParameterInt*>(parameters->getParameter("panning_" + String(i)));
         apiCommunicationTimer.setVolumeParameter(i, volumeParameters[i]);
         apiCommunicationTimer.setPanningParameter(i, panningParameters[i]);
     }
