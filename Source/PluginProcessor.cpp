@@ -39,16 +39,19 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 FaderoniAudioProcessor::FaderoniAudioProcessor()
     : apiCommunicationTimer(motuWebApi)
 {
-    motuWebApi.setTimeout(1); // dont wait for the calls to complete
-    
     parameters = new AudioProcessorValueTreeState(*this, nullptr, Identifier("Faderoni"), initParameterLayout());
+
+    apiCommunicationTimer.setAmountOfChannelsParameter(&amountOfChannelsParameter);
 
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         volumeParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume_" + String(i)));
         panningParameters[i] = dynamic_cast<AudioParameterInt*>(parameters->getParameter("panning_" + String(i)));
         apiCommunicationTimer.setVolumeParameter(i, volumeParameters[i]);
         apiCommunicationTimer.setPanningParameter(i, panningParameters[i]);
+        apiCommunicationTimer.setSubtreeParameter(i, &subtreeParameters[i]);
     }
+
+    motuWebApi.setTimeout(1); // dont wait for the calls to complete
 
     apiCommunicationTimer.startTimerHz(5);
 }
@@ -172,7 +175,6 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
         parameters->replaceState(ValueTree::fromXml(*xmlState));
 
     hostnameParameter = parameters->state.getChildWithProperty("id", "hostname");
-
     if (!hostnameParameter.isValid())
     {
         hostnameParameter = ValueTree("PARAM");
@@ -181,8 +183,9 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
         parameters->state.appendChild(hostnameParameter, nullptr);
     }
 
-    amountOfChannelsParameter = parameters->state.getChildWithProperty("id", "amount_of_channels");
+    motuWebApi.setHostname(hostnameParameter.getPropertyAsValue("value", nullptr).getValue());
 
+    amountOfChannelsParameter = parameters->state.getChildWithProperty("id", "amount_of_channels");
     if (!amountOfChannelsParameter.isValid())
     {
         amountOfChannelsParameter = ValueTree("PARAM");
@@ -190,6 +193,7 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
         amountOfChannelsParameter.setProperty("value", 3, nullptr);
         parameters->state.appendChild(amountOfChannelsParameter, nullptr);
     }
+    apiCommunicationTimer.setAmountOfChannelsParameter(&amountOfChannelsParameter);
 
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         subtreeParameters[i] = parameters->state.getChildWithProperty("id", "subtree_" + String(i));
@@ -201,6 +205,8 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
             subtreeParameters[i].setProperty("value", "mix/chan/" + String(i) + "/matrix", nullptr);
             parameters->state.appendChild(subtreeParameters[i], nullptr);
         }
+
+        apiCommunicationTimer.setSubtreeParameter(i, &subtreeParameters[i]);
     }
 }
 
@@ -242,13 +248,11 @@ void FaderoniAudioProcessor::setHost(const String& hostname)
 
 void FaderoniAudioProcessor::setSubtree(const int& channel, const String& subtree)
 {
-    apiCommunicationTimer.setSubtree(channel, subtree);
     subtreeParameters[channel].setProperty("value", subtree, nullptr);
 }
 
 void FaderoniAudioProcessor::setAmountOfChannels(const int& amount)
 {
-    apiCommunicationTimer.setAmountOfChannels(amount);
     amountOfChannelsParameter.setProperty("value", String(amount), nullptr);
 }
 

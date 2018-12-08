@@ -5,47 +5,44 @@
 ApiCommunicationTimer::ApiCommunicationTimer(MotuWebApi& motuWebApi)
     : motuWebApi(motuWebApi)
 {
-    subtrees.ensureStorageAllocated(FADERONI_MAX_CHANNELS);
-
-    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
-        subtrees.add("");
-    }
 }
 
 //==============================================================================
+void ApiCommunicationTimer::setAmountOfChannelsParameter(ValueTree* amountOfChannelsParameter)
+{
+    this->amountOfChannelsParameter = amountOfChannelsParameter;
+}
+
 void ApiCommunicationTimer::setVolumeParameter(int channel, AudioParameterFloat* volume)
 {
-    this->volumes[channel] = volume;
+    volumes[channel] = volume;
 }
 
 void ApiCommunicationTimer::setPanningParameter(int channel, AudioParameterInt* panning)
 {
-    this->pannings[channel] = panning;
+    pannings[channel] = panning;
 }
 
-void ApiCommunicationTimer::setSubtree(int channel, const String& subtree)
+void ApiCommunicationTimer::setSubtreeParameter(int channel, ValueTree* subtree)
 {
-    this->subtrees.setUnchecked(channel, subtree);
-}
-
-void ApiCommunicationTimer::setAmountOfChannels(const int& amount)
-{
-    this->amountOfchannels = amount;
+    subtrees[channel] = subtree;
 }
 
 void ApiCommunicationTimer::timerCallback()
 {
-    for (auto i = 0; i < amountOfchannels; i++) {
+    const auto amountOfChannels = static_cast<int>(amountOfChannelsParameter->getPropertyAsValue("value", nullptr).getValue());
+
+    for (auto i = 0; i < amountOfChannels; i++) {
         if (*volumes[i] != prevVolumes[i])
         {
             prevVolumes[i] = *volumes[i];
-            motuWebApi.setVolume(subtrees.getUnchecked(i), transformVolumeValueToMultiplicator(prevVolumes[i]));
+            motuWebApi.setVolume(subtrees[i]->getPropertyAsValue("value", nullptr).getValue(), transformVolumeValueToMultiplicator(prevVolumes[i]));
         }
 
         if (*pannings[i] != prevPannings[i])
         {
             prevPannings[i] = *pannings[i];
-            motuWebApi.setPanning(subtrees.getUnchecked(i), transformPanningValueToMultiplicator(prevPannings[i]));
+            motuWebApi.setPanning(subtrees[i]->getPropertyAsValue("value", nullptr).getValue(), transformPanningValueToMultiplicator(prevPannings[i]));
         }
     }
 }

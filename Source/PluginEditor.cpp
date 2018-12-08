@@ -43,7 +43,7 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     btnMinus.setButtonText("-");
     btnMinus.onClick = [this]()
     {
-        setAmountOfChannels(amountOfChannels > 1 ? amountOfChannels - 1 : 1); 
+        setAmountOfChannels(amountOfChannels > 1 ? amountOfChannels - 1 : 1);
         processor.setAmountOfChannels(amountOfChannels);
     };
     btnPlus.setLookAndFeel(&faderoniLook);
@@ -188,7 +188,7 @@ void FaderoniAudioProcessorEditor::resized()
 
         sliderVolumes[i].setBounds(col * 250 + 50, row * 220 + 40, 80, 120);
         sliderPannings[i].setBounds(col * 250 + 150, row * 220 + 80, 60, 80);
-        inputSubtrees[i].setBounds(col * 250 + 50, row * 220 + 190, 140, inputHeight);
+        inputSubtrees[i].setBounds(col * 250 + 50, row * 220 + 180, 160, inputHeight);
         inputSubtrees[i].setJustification(Justification::Flags::centred);
     }
 }

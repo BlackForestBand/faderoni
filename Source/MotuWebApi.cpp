@@ -46,7 +46,5 @@ bool MotuWebApi::postJson(const String& json) const
     if (stream == nullptr)
         return false;
 
-    auto debug = stream->readString();
-
     return statusCode == 204;
 }
