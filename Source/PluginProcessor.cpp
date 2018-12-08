@@ -3,6 +3,10 @@
 
 // c-style parameter init func
 
+int transformPanningTextToValue(String text);
+int transformVolumeTextToValue(String text);
+String transformPanningValueToText(int value);
+String transformVolumeValueToText(float value);
 AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 {
     std::vector<std::unique_ptr<RangedAudioParameter>> params;
@@ -10,15 +14,22 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         params.push_back(std::make_unique<AudioParameterFloat>(
             "volume_" + String(i), // parameter ID
-            "Volume", // parameter name
+            "Volume " + String(i), // parameter name
             NormalisableRange<float>(-48.0f, 12.0f, 0.1f), // parameter range
-            0.0f));
+            0.0f,
+            "Volume " + String(i),
+            AudioProcessorParameter::genericParameter,
+            [](const float val, const int maximumStringLength) { return transformVolumeValueToText(val); },
+            [](const String text) { return transformVolumeTextToValue(text); }));
         params.push_back(std::make_unique<AudioParameterInt>(
             "panning_" + String(i), // parameter ID
-            "Panning", // parameter name
+            "Panning " + String(i), // parameter name
             -100,
             100, // parameter range
-            0));
+            0,
+            "Panning " + String(i),
+            [](const int val, const int maximumStringLength) { return transformPanningValueToText(val); },
+            [](const String text) { return transformPanningTextToValue(text); }));
     }
 
     return { params.begin(), params.end() };
@@ -239,4 +250,64 @@ void FaderoniAudioProcessor::setAmountOfChannels(const int& amount)
 {
     apiCommunicationTimer.setAmountOfChannels(amount);
     amountOfChannelsParameter.setProperty("value", String(amount), nullptr);
+}
+
+
+int transformPanningTextToValue(String text)
+{
+    if (text.equalsIgnoreCase("L"))
+        return -100;
+    if (text.equalsIgnoreCase("C"))
+        return 0;
+    if (text.equalsIgnoreCase("R"))
+        return 100;
+
+    try
+    {
+        return std::stoi(text.toStdString());
+    }
+    catch (std::invalid_argument ex) { return 0; }
+    catch (std::out_of_range ex) { return 0; }
+}
+
+int transformVolumeTextToValue(String text)
+{
+    try
+    {
+        return std::stoi(text.toStdString());
+    }
+    catch (std::invalid_argument ex) { return 102; }
+    catch (std::out_of_range ex) { return 102; }
+}
+
+String transformPanningValueToText(int value)
+{
+    if (value == -100)
+        return String("<L>");
+    if (value == 0)
+        return String("<C>");
+    if (value == 100)
+        return String("<R>");
+
+    if (value < 0)
+        return "L" + String(-value);
+
+    return "R" + String(value);
+}
+
+String transformVolumeValueToText(float value)
+{
+    String volumeString;
+
+    if (value == -48)
+        volumeString = "-inf";
+    else
+    {
+        if (value > 0)
+            volumeString = "+" + String(value, 1);
+        else
+            volumeString = String(value, 1);
+    }
+
+    return volumeString + " dB";
 }

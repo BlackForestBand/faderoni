@@ -6,6 +6,10 @@ ApiCommunicationTimer::ApiCommunicationTimer(MotuWebApi& motuWebApi)
     : motuWebApi(motuWebApi)
 {
     subtrees.ensureStorageAllocated(FADERONI_MAX_CHANNELS);
+
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        subtrees.add("");
+    }
 }
 
 //==============================================================================
@@ -21,7 +25,7 @@ void ApiCommunicationTimer::setPanningParameter(int channel, AudioParameterInt* 
 
 void ApiCommunicationTimer::setSubtree(int channel, const String& subtree)
 {
-    this->subtrees[channel] = subtree;
+    this->subtrees.setUnchecked(channel, subtree);
 }
 
 void ApiCommunicationTimer::setAmountOfChannels(const int& amount)
@@ -35,13 +39,13 @@ void ApiCommunicationTimer::timerCallback()
         if (*volumes[i] != prevVolumes[i])
         {
             prevVolumes[i] = *volumes[i];
-            motuWebApi.setVolume(subtrees[i], transformVolumeValueToMultiplicator(prevVolumes[i]));
+            motuWebApi.setVolume(subtrees.getUnchecked(i), transformVolumeValueToMultiplicator(prevVolumes[i]));
         }
 
         if (*pannings[i] != prevPannings[i])
         {
             prevPannings[i] = *pannings[i];
-            motuWebApi.setPanning(subtrees[i], transformPanningValueToMultiplicator(prevPannings[i]));
+            motuWebApi.setPanning(subtrees.getUnchecked(i), transformPanningValueToMultiplicator(prevPannings[i]));
         }
     }
 }

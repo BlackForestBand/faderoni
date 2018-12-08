@@ -34,6 +34,7 @@ public:
     //==============================================================================
     void paint(Graphics&) override;
     void resized() override;
+    void setSize();
 
 private:
     // This reference is provided as a quick way for your editor to
@@ -45,6 +46,8 @@ private:
     Label lblHost;
     Label lblAmountOfChannels;
     Label lblSubtrees[FADERONI_MAX_CHANNELS];
+
+    TextButton btnMinus, btnPlus;
 
     TextEditor inputHost;
     TextEditor inputSubtrees[8];
@@ -63,11 +66,6 @@ private:
 
     float prevVolumes[8]{};
     int prevPannings[8]{};
-
-    String transformPanningValueToText(int midiValue) const;
-    String transformVolumeValueToText(float value) const;
-    int transformPanningTextToValue(String text) const;
-    int transformVolumeTextToValue(String text) const;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderoniAudioProcessorEditor)
 };
