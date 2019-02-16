@@ -40,6 +40,7 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
     : apiCommunicationTimer(motuWebApi)
 {
     parameters = new AudioProcessorValueTreeState(*this, nullptr, Identifier("Faderoni"), initParameterLayout());
+    initializeParameters();
 
     apiCommunicationTimer.setAmountOfChannelsParameter(&amountOfChannelsParameter);
 
@@ -174,40 +175,7 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
     if (xmlState->hasTagName(parameters->state.getType()))
         parameters->replaceState(ValueTree::fromXml(*xmlState));
 
-    hostnameParameter = parameters->state.getChildWithProperty("id", "hostname");
-    if (!hostnameParameter.isValid())
-    {
-        hostnameParameter = ValueTree("PARAM");
-        hostnameParameter.setProperty("id", "hostname", nullptr);
-        hostnameParameter.setProperty("value", "motu", nullptr);
-        parameters->state.appendChild(hostnameParameter, nullptr);
-    }
-
-    motuWebApi.setHostname(hostnameParameter.getPropertyAsValue("value", nullptr).getValue());
-
-    amountOfChannelsParameter = parameters->state.getChildWithProperty("id", "amount_of_channels");
-    if (!amountOfChannelsParameter.isValid())
-    {
-        amountOfChannelsParameter = ValueTree("PARAM");
-        amountOfChannelsParameter.setProperty("id", "amount_of_channels", nullptr);
-        amountOfChannelsParameter.setProperty("value", 3, nullptr);
-        parameters->state.appendChild(amountOfChannelsParameter, nullptr);
-    }
-    apiCommunicationTimer.setAmountOfChannelsParameter(&amountOfChannelsParameter);
-
-    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
-        subtreeParameters[i] = parameters->state.getChildWithProperty("id", "subtree_" + String(i));
-
-        if (!subtreeParameters[i].isValid())
-        {
-            subtreeParameters[i] = ValueTree("PARAM");
-            subtreeParameters[i].setProperty("id", "subtree_" + String(i), nullptr);
-            subtreeParameters[i].setProperty("value", "mix/chan/" + String(i) + "/matrix", nullptr);
-            parameters->state.appendChild(subtreeParameters[i], nullptr);
-        }
-
-        apiCommunicationTimer.setSubtreeParameter(i, &subtreeParameters[i]);
-    }
+    initializeParameters();
 }
 
 void FaderoniAudioProcessor::setVolume(const int& channel, float volume)
@@ -254,6 +222,44 @@ void FaderoniAudioProcessor::setSubtree(const int& channel, const String& subtre
 void FaderoniAudioProcessor::setAmountOfChannels(const int& amount)
 {
     amountOfChannelsParameter.setProperty("value", String(amount), nullptr);
+}
+
+void FaderoniAudioProcessor::initializeParameters()
+{
+    hostnameParameter = parameters->state.getChildWithProperty("id", "hostname");
+    if (!hostnameParameter.isValid())
+    {
+        hostnameParameter = ValueTree("PARAM");
+        hostnameParameter.setProperty("id", "hostname", nullptr);
+        hostnameParameter.setProperty("value", "motu", nullptr);
+        parameters->state.appendChild(hostnameParameter, nullptr);
+    }
+
+    motuWebApi.setHostname(hostnameParameter.getPropertyAsValue("value", nullptr).getValue());
+
+    amountOfChannelsParameter = parameters->state.getChildWithProperty("id", "amount_of_channels");
+    if (!amountOfChannelsParameter.isValid())
+    {
+        amountOfChannelsParameter = ValueTree("PARAM");
+        amountOfChannelsParameter.setProperty("id", "amount_of_channels", nullptr);
+        amountOfChannelsParameter.setProperty("value", 3, nullptr);
+        parameters->state.appendChild(amountOfChannelsParameter, nullptr);
+    }
+    apiCommunicationTimer.setAmountOfChannelsParameter(&amountOfChannelsParameter);
+
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        subtreeParameters[i] = parameters->state.getChildWithProperty("id", "subtree_" + String(i));
+
+        if (!subtreeParameters[i].isValid())
+        {
+            subtreeParameters[i] = ValueTree("PARAM");
+            subtreeParameters[i].setProperty("id", "subtree_" + String(i), nullptr);
+            subtreeParameters[i].setProperty("value", "mix/chan/" + String(i) + "/matrix", nullptr);
+            parameters->state.appendChild(subtreeParameters[i], nullptr);
+        }
+
+        apiCommunicationTimer.setSubtreeParameter(i, &subtreeParameters[i]);
+    }
 }
 
 
