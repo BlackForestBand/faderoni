@@ -30,25 +30,25 @@ void ApiCommunicationTimer::setSubtreeParameter(int channel, ValueTree* subtree)
 
 void ApiCommunicationTimer::setMasterVolumeParameter(AudioParameterFloat* mV)
 {
-	masterVolume = mV;
+    masterVolume = mV;
 }
 
 
 void ApiCommunicationTimer::timerCallback()
 {
     const auto amountOfChannels = static_cast<int>(amountOfChannelsParameter->getPropertyAsValue("value", nullptr).getValue());
-	bool refreshVolume = false;
-	if(*masterVolume != prevMasterVolume)
-	{
-		prevMasterVolume = *masterVolume;
-		refreshVolume = true;
-	}
+    bool refreshVolume = false;
+    if (*masterVolume != prevMasterVolume)
+    {
+        prevMasterVolume = *masterVolume;
+        refreshVolume = true;
+    }
 
     for (auto i = 0; i < amountOfChannels; i++) {
         if ((*volumes[i] != prevVolumes[i]) || refreshVolume)
         {
             prevVolumes[i] = *volumes[i];
-			motuWebApi.setVolume(subtrees[i]->getPropertyAsValue("value", nullptr).getValue(), transformVolumeValueToMultiplicator(addVolumes(prevVolumes[i], prevMasterVolume)));
+            motuWebApi.setVolume(subtrees[i]->getPropertyAsValue("value", nullptr).getValue(), transformVolumeValueToMultiplicator(addVolumes(prevVolumes[i], prevMasterVolume)));
         }
 
         if (*pannings[i] != prevPannings[i])
@@ -66,12 +66,12 @@ float ApiCommunicationTimer::transformPanningValueToMultiplicator(float value)
 
 float ApiCommunicationTimer::addVolumes(float v1, float v2)
 {
-	float val = v1 + v2;
-	if (val > 12.0f)
-		return 12.0f;
-	if (val < -48.0f)
-		return -48.0f;
-	return val;
+    float val = v1 + v2;
+    if (val > 12.0f)
+        return 12.0f;
+    if (val < -48.0f)
+        return -48.0f;
+    return val;
 }
 
 
