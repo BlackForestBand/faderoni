@@ -54,21 +54,21 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
         processor.setAmountOfChannels(amountOfChannels);
     };
 
-	lblMasterVolume.setFont(bodyFont);
-	lblMasterVolume.setText("Master Volume:", dontSendNotification);
+    lblMasterVolume.setFont(bodyFont);
+    lblMasterVolume.setText("Master Volume:", dontSendNotification);
 
-	sliderMasterVolume.setSliderStyle(Slider::LinearHorizontal);
-	sliderMasterVolume.setRange(-48, 12, 0.1);
-	sliderMasterVolume.setPopupDisplayEnabled(true, false, this);
-	sliderMasterVolume.setLookAndFeel(&faderoniLook);
-	sliderMasterVolume.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 80, 20);
-	sliderMasterVolume.setDoubleClickReturnValue(true, 102);
-	sliderMasterVolume.setValue(0);
+    sliderMasterVolume.setSliderStyle(Slider::LinearHorizontal);
+    sliderMasterVolume.setRange(-48, 12, 0.1);
+    sliderMasterVolume.setPopupDisplayEnabled(true, false, this);
+    sliderMasterVolume.setLookAndFeel(&faderoniLook);
+    sliderMasterVolume.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 80, 20);
+    sliderMasterVolume.setDoubleClickReturnValue(true, 102);
+    sliderMasterVolume.setValue(0);
 
 
 
-	addAndMakeVisible(&sliderMasterVolume);
-	addAndMakeVisible(&lblMasterVolume);
+    addAndMakeVisible(&sliderMasterVolume);
+    addAndMakeVisible(&lblMasterVolume);
     addAndMakeVisible(&lblTitle);
     addAndMakeVisible(&lblHost);
     addAndMakeVisible(&inputHost);
@@ -111,7 +111,7 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
         // slider attachments for automation
         volumeAttachments[i].reset(new SliderAttachment(*parameters, "volume_" + String(i), sliderVolumes[i]));
         panningAttachments[i].reset(new SliderAttachment(*parameters, "panning_" + String(i), sliderPannings[i]));
-		masterVolumeAttachment.reset(new SliderAttachment(*parameters, "master_volume", sliderMasterVolume));
+        masterVolumeAttachment.reset(new SliderAttachment(*parameters, "master_volume", sliderMasterVolume));
     }
 
     setResizable(false, false);
@@ -127,6 +127,8 @@ FaderoniAudioProcessorEditor::~FaderoniAudioProcessorEditor()
         sliderVolumes[i].setLookAndFeel(nullptr);
         sliderPannings[i].setLookAndFeel(nullptr);
     }
+
+    sliderMasterVolume.setLookAndFeel(nullptr);
 }
 
 //==============================================================================
@@ -141,11 +143,11 @@ void FaderoniAudioProcessorEditor::setVolume(const int& channel, const float& va
 
 void FaderoniAudioProcessorEditor::setMasterVolume(const float& val)
 {
-	if (val == prevMasterVolume)
-		return;
+    if (val == prevMasterVolume)
+        return;
 
-	prevMasterVolume = val;
-	sliderMasterVolume.setValue(val, dontSendNotification);
+    prevMasterVolume = val;
+    sliderMasterVolume.setValue(val, dontSendNotification);
 }
 
 void FaderoniAudioProcessorEditor::setPanning(const int& channel, const int& val)
@@ -206,12 +208,12 @@ void FaderoniAudioProcessorEditor::resized()
     lblAmountOfChannels.setBounds(width - 80, 7, 40, 30);
     lblAmountOfChannels.setJustificationType(Justification::Flags::centred);
     btnPlus.setBounds(width - 40, 7, 30, 30);
-	
 
-	lblMasterVolume.setBounds(5, height-35, 100, 30);
-	lblMasterVolume.setJustificationType(Justification::Flags::centred);
 
-	sliderMasterVolume.setBounds(105, height-30, 300, 20);
+    lblMasterVolume.setBounds(5, height - 35, 100, 30);
+    lblMasterVolume.setJustificationType(Justification::Flags::centred);
+
+    sliderMasterVolume.setBounds(105, height - 30, 300, 20);
 
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         const auto col = i % 3;

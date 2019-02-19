@@ -30,7 +30,7 @@ public:
     void setVolume(const int& channel, const float& val);
     void setPanning(const int& channel, const int& val);
     void setAmountOfChannels(const int& amount);
-	void setMasterVolume(const float& val);
+    void setMasterVolume(const float& val);
 
     //==============================================================================
     void paint(Graphics&) override;
@@ -43,7 +43,7 @@ private:
     FaderoniAudioProcessor& processor;
     AudioProcessorValueTreeState* parameters;
 
-	Label lblMasterVolume;
+    Label lblMasterVolume;
     Label lblTitle;
     Label lblHost;
     Label lblAmountOfChannels;
@@ -57,11 +57,11 @@ private:
     Slider sliderVolumes[FADERONI_MAX_CHANNELS];
     Slider sliderPannings[FADERONI_MAX_CHANNELS];
 
-	Slider sliderMasterVolume;
+    Slider sliderMasterVolume;
 
     std::unique_ptr<SliderAttachment> volumeAttachments[FADERONI_MAX_CHANNELS];
     std::unique_ptr<SliderAttachment> panningAttachments[FADERONI_MAX_CHANNELS];
-	std::unique_ptr<SliderAttachment> masterVolumeAttachment;
+    std::unique_ptr<SliderAttachment> masterVolumeAttachment;
     int amountOfChannels = FADERONI_MAX_CHANNELS;
 
     LookAndFeel_V4 faderoniLook;
@@ -71,7 +71,7 @@ private:
 
     float prevVolumes[8]{};
     int prevPannings[8]{};
-	float prevMasterVolume;
+    float prevMasterVolume;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderoniAudioProcessorEditor)
 };

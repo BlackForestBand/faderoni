@@ -11,15 +11,15 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 {
     std::vector<std::unique_ptr<RangedAudioParameter>> params;
 
-	params.push_back(std::make_unique<AudioParameterFloat>(
-		"master_volume", //paramter ID
-		"Master Volume",
-		NormalisableRange<float>(-48.0f, 12.0f, 0.1f),
-		0.0f,
-		"Master Volume",
-		AudioProcessorParameter::genericParameter,
-		[](const float val, const int maximumStringLength) {return transformVolumeValueToText(val);  },
-		[](const String text) {return transformVolumeTextToValue(text); }));
+    params.push_back(std::make_unique<AudioParameterFloat>(
+        "master_volume", //paramter ID
+        "Master Volume",
+        NormalisableRange<float>(-48.0f, 12.0f, 0.1f),
+        0.0f,
+        "Master Volume",
+        AudioProcessorParameter::genericParameter,
+        [](const float val, const int maximumStringLength) {return transformVolumeValueToText(val);  },
+        [](const String text) {return transformVolumeTextToValue(text); }));
 
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         params.push_back(std::make_unique<AudioParameterFloat>(
@@ -55,9 +55,9 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
 
     apiCommunicationTimer.setAmountOfChannelsParameter(&amountOfChannelsParameter);
 
-	masterVolumeParameter = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("master_volume"));
-	apiCommunicationTimer.setMasterVolumeParameter(masterVolumeParameter);
-	
+    masterVolumeParameter = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("master_volume"));
+    apiCommunicationTimer.setMasterVolumeParameter(masterVolumeParameter);
+
 
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         volumeParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume_" + String(i)));
@@ -195,7 +195,7 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
 void FaderoniAudioProcessor::setMasterVolume(float volume)
 {
-	masterVolumeParameter->setValueNotifyingHost(masterVolumeParameter->convertTo0to1(volume));
+    masterVolumeParameter->setValueNotifyingHost(masterVolumeParameter->convertTo0to1(volume));
 }
 
 void FaderoniAudioProcessor::setVolume(const int& channel, float volume)
