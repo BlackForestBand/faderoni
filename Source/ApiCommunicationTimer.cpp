@@ -99,13 +99,7 @@ float ApiCommunicationTimer::transformPanningValueToMultiplicator(float value)
 
 float ApiCommunicationTimer::addVolumes(float v1, float v2)
 {    
-    std::max(std::min(v1+v2,12.0f),48.0f);
-    float val = v1 + v2;
-    if (val > 12.0f)
-        return 12.0f;
-    if (val < -48.0f)
-        return -48.0f;
-    return val;
+    return std::max(std::min(v1+v2,12.0f),48.0f);
 }
 
 
