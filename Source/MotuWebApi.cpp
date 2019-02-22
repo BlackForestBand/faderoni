@@ -16,6 +16,12 @@ bool MotuWebApi::setVolume(const String& subtree, float value) const
     return postJson("{ \"" + subtree + "/fader\": " + String(value, 4) + " }");
 }
 
+bool MotuWebApi::setEq(const String& subtree, float value) const
+{
+    //ex: {"mix/aux/6/eq/highshelf/freq":2884}
+    return postJson("{ \"" + subtree + "/eq/highshelf/freq\": " + String(value,0) + " }");
+}
+
 bool MotuWebApi::setPanning(const String& subtree, float value) const
 {
     return postJson("{ \"" + subtree + "/pan\": " + String(value, 4) + " }");
@@ -45,6 +51,6 @@ bool MotuWebApi::postJson(const String& json) const
 
     if (stream == nullptr)
         return false;
-
-    return statusCode == 204;
+        
+    return statusCode == 204;   
 }
