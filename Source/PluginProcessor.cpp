@@ -7,9 +7,15 @@ int transformPanningTextToValue(String text);
 int transformVolumeTextToValue(String text);
 String transformPanningValueToText(int value);
 String transformVolumeValueToText(float value);
+int transformEqTextToValue(String text);
+String transformEqValueToText(float value);
+
 AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 {
     std::vector<std::unique_ptr<RangedAudioParameter>> params;
+
+    NormalisableRange<float> eqParameterRange = NormalisableRange<float>(200.0f,20000.0f,1.0f);
+    eqParameterRange.setSkewForCentre(632);
 
     params.push_back(std::make_unique<AudioParameterFloat>(
         "master_volume", //paramter ID
@@ -40,6 +46,16 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
             "Panning " + String(i),
             [](const int val, const int maximumStringLength) { return transformPanningValueToText(val); },
             [](const String text) { return transformPanningTextToValue(text); }));
+        params.push_back(std::make_unique<AudioParameterFloat>(
+            "eq_" + String(i),
+            "EQ " + String(i),
+            eqParameterRange,
+            2000.0f,
+            "EQ " + String(i),
+            AudioProcessorParameter::genericParameter,
+            [](const int val, const int maximumStringLength) { return transformEqValueToText(val); },
+            [](const String text) { return transformPanningTextToValue(text); }
+            ));
     }
 
 
@@ -62,9 +78,11 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         volumeParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume_" + String(i)));
         panningParameters[i] = dynamic_cast<AudioParameterInt*>(parameters->getParameter("panning_" + String(i)));
+        eqParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("eq_" + String(i)));
         apiCommunicationTimer.setVolumeParameter(i, volumeParameters[i]);
         apiCommunicationTimer.setPanningParameter(i, panningParameters[i]);
         apiCommunicationTimer.setSubtreeParameter(i, &subtreeParameters[i]);
+        apiCommunicationTimer.setEqParameter(i, eqParameters[i]);
     }
 
     motuWebApi.setTimeout(1); // dont wait for the calls to complete
@@ -244,6 +262,12 @@ void FaderoniAudioProcessor::setAmountOfChannels(const int& amount)
     amountOfChannelsParameter.setProperty("value", String(amount), nullptr);
 }
 
+void FaderoniAudioProcessor::setChannelMode(const int& channel, bool mode)
+{
+    channelModeParameters[channel].setProperty("value", mode, nullptr);
+}
+
+
 void FaderoniAudioProcessor::initializeParameters()
 {
     hostnameParameter = parameters->state.getChildWithProperty("id", "hostname");
@@ -267,6 +291,8 @@ void FaderoniAudioProcessor::initializeParameters()
     }
     apiCommunicationTimer.setAmountOfChannelsParameter(&amountOfChannelsParameter);
 
+    
+
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         subtreeParameters[i] = parameters->state.getChildWithProperty("id", "subtree_" + String(i));
 
@@ -279,6 +305,16 @@ void FaderoniAudioProcessor::initializeParameters()
         }
 
         apiCommunicationTimer.setSubtreeParameter(i, &subtreeParameters[i]);
+
+        channelModeParameters[i] = parameters->state.getChildWithProperty("id", "channelMode_" + String(i));
+        if(!channelModeParameters[i].isValid())
+        {
+            channelModeParameters[i] = ValueTree("PARAM");
+            channelModeParameters[i].setProperty("id", "channelMode_" + String(i), nullptr);
+            channelModeParameters[i].setProperty("value",false, nullptr);
+            parameters->state.appendChild(channelModeParameters[i], nullptr);
+        }
+        apiCommunicationTimer.setChannelModeParameter(i, &channelModeParameters[i]);
     }
 }
 
@@ -305,6 +341,21 @@ int transformVolumeTextToValue(String text)
     try
     {
         return std::stoi(text.toStdString());
+    }
+    catch (std::invalid_argument ex) { return 102; }
+    catch (std::out_of_range ex) { return 102; }
+}
+
+String transformEqValueToText(float value)
+{
+    return String(floor(value)) + " Hz";
+}
+
+int transformEqTextToValue(String text)
+{
+    try
+    {
+        return floor(std::stof(text.toStdString()));
     }
     catch (std::invalid_argument ex) { return 102; }
     catch (std::out_of_range ex) { return 102; }
