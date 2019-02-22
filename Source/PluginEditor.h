@@ -58,13 +58,12 @@ private:
     TextEditor inputSubtrees[FADERONI_MAX_CHANNELS];
 
     TextButton btnModeVolume[FADERONI_MAX_CHANNELS];
-    TextButton btnModeEq[FADERONI_MAX_CHANNELS];
+    TextButton btnModeEqualizer[FADERONI_MAX_CHANNELS];
     Label lblMode[FADERONI_MAX_CHANNELS];
-
 
     Slider sliderVolumes[FADERONI_MAX_CHANNELS];
     Slider sliderPannings[FADERONI_MAX_CHANNELS];
-    Slider sliderEqs[FADERONI_MAX_CHANNELS];
+    Slider sliderEqualizers[FADERONI_MAX_CHANNELS];
 
     Slider sliderMasterVolume;
 
@@ -74,7 +73,7 @@ private:
     std::unique_ptr<SliderAttachment> eqAttachments[FADERONI_MAX_CHANNELS];
     int amountOfChannels = FADERONI_MAX_CHANNELS;
     bool channelMode[FADERONI_MAX_CHANNELS]{};
-    
+
     LookAndFeel_V4 faderoniLook;
     Font headerFont;
     Font bodyFont;

@@ -59,12 +59,9 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    void setVolume(const int& channel, float volume);
-    void setPanning(const int& channel, int panning);
-    void setMasterVolume(float volume);
     float transformVolumeValueToMultiplicator(float value) const;
 
-    void setHost(const String& string);
+    void setHost(const String& hostname);
     void setSubtree(const int& channel, const String& subtree);
     void setAmountOfChannels(const int& amount);
     void setChannelMode(const int& channel, bool mode);
@@ -77,7 +74,7 @@ private:
     ValueTree amountOfChannelsParameter;
     AudioParameterFloat* volumeParameters[FADERONI_MAX_CHANNELS];
     AudioParameterInt* panningParameters[FADERONI_MAX_CHANNELS];
-    AudioParameterFloat* eqParameters[FADERONI_MAX_CHANNELS];
+    AudioParameterFloat* equalizerFrequencyParameters[FADERONI_MAX_CHANNELS];
     AudioParameterFloat* masterVolumeParameter;
     ValueTree subtreeParameters[FADERONI_MAX_CHANNELS];
     ValueTree channelModeParameters[FADERONI_MAX_CHANNELS];

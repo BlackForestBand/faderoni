@@ -58,23 +58,24 @@ void ApiCommunicationTimer::timerCallback()
 
     for (auto i = 0; i < amountOfChannels; i++) {
         const bool mode = channelModes[i]->getPropertyAsValue("value", nullptr).getValue();
-        bool mode_switched = false;
-        if(mode != prevMode[i])
+        auto mode_switched = false;
+        if (mode != prevMode[i])
         {
             prevMode[i] = mode;
             mode_switched = true;
         }
-            
 
-        if(mode)
+
+        if (mode)
         {
-            if(*eqs[i] != prevEq[i] || mode_switched)
-            {    
+            if (*eqs[i] != prevEq[i] || mode_switched)
+            {
                 prevEq[i] = *eqs[i];
                 motuWebApi.setEq(subtrees[i]->getPropertyAsValue("value", nullptr).getValue(), prevEq[i]);
             }
-            
-        } else
+
+        }
+        else
         {
             if ((*volumes[i] != prevVolumes[i]) || refreshVolume || mode_switched)
             {
@@ -88,7 +89,7 @@ void ApiCommunicationTimer::timerCallback()
                 motuWebApi.setPanning(subtrees[i]->getPropertyAsValue("value", nullptr).getValue(), transformPanningValueToMultiplicator(prevPannings[i]));
             }
         }
-        
+
     }
 }
 
@@ -98,8 +99,8 @@ float ApiCommunicationTimer::transformPanningValueToMultiplicator(float value)
 }
 
 float ApiCommunicationTimer::addVolumes(float v1, float v2)
-{    
-    return std::max(std::min(v1+v2,12.0f),48.0f);
+{
+    return std::max(std::min(v1 + v2, 12.0f), -48.0f);
 }
 
 

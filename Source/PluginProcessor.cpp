@@ -3,19 +3,19 @@
 
 // c-style parameter init func
 
-int transformPanningTextToValue(String text);
-int transformVolumeTextToValue(String text);
+int transformPanningTextToValue(const String& text);
+int transformVolumeTextToValue(const String& text);
 String transformPanningValueToText(int value);
 String transformVolumeValueToText(float value);
-int transformEqTextToValue(String text);
-String transformEqValueToText(float value);
+int transformEqualizerTextToValue(const String& text);
+String transformEqualizerFrequencyValueToText(float value);
 
 AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
 {
     std::vector<std::unique_ptr<RangedAudioParameter>> params;
 
-    NormalisableRange<float> eqParameterRange = NormalisableRange<float>(200.0f,20000.0f,1.0f);
-    eqParameterRange.setSkewForCentre(632);
+    NormalisableRange<float> equalizerFrequencyParameterRange = NormalisableRange<float>(20.0f, 20000.0f, 1.0f);
+    equalizerFrequencyParameterRange.setSkewForCentre(632);
 
     params.push_back(std::make_unique<AudioParameterFloat>(
         "master_volume", //paramter ID
@@ -48,14 +48,14 @@ AudioProcessorValueTreeState::ParameterLayout initParameterLayout()
             [](const String text) { return transformPanningTextToValue(text); }));
         params.push_back(std::make_unique<AudioParameterFloat>(
             "eq_" + String(i),
-            "EQ " + String(i),
-            eqParameterRange,
+            "EQ Frequency " + String(i),
+            equalizerFrequencyParameterRange,
             2000.0f,
-            "EQ " + String(i),
+            "EQ Frequency " + String(i),
             AudioProcessorParameter::genericParameter,
-            [](const int val, const int maximumStringLength) { return transformEqValueToText(val); },
-            [](const String text) { return transformPanningTextToValue(text); }
-            ));
+            [](const int val, const int maximumStringLength) { return transformEqualizerFrequencyValueToText(val); },
+            [](const String text) { return transformEqualizerTextToValue(text); }
+        ));
     }
 
 
@@ -78,11 +78,11 @@ FaderoniAudioProcessor::FaderoniAudioProcessor()
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         volumeParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("volume_" + String(i)));
         panningParameters[i] = dynamic_cast<AudioParameterInt*>(parameters->getParameter("panning_" + String(i)));
-        eqParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("eq_" + String(i)));
+        equalizerFrequencyParameters[i] = dynamic_cast<AudioParameterFloat*>(parameters->getParameter("eq_" + String(i)));
         apiCommunicationTimer.setVolumeParameter(i, volumeParameters[i]);
         apiCommunicationTimer.setPanningParameter(i, panningParameters[i]);
         apiCommunicationTimer.setSubtreeParameter(i, &subtreeParameters[i]);
-        apiCommunicationTimer.setEqParameter(i, eqParameters[i]);
+        apiCommunicationTimer.setEqParameter(i, equalizerFrequencyParameters[i]);
     }
 
     motuWebApi.setTimeout(1); // dont wait for the calls to complete
@@ -211,21 +211,6 @@ void FaderoniAudioProcessor::setStateInformation(const void* data, int sizeInByt
     initializeParameters();
 }
 
-void FaderoniAudioProcessor::setMasterVolume(float volume)
-{
-    masterVolumeParameter->setValueNotifyingHost(masterVolumeParameter->convertTo0to1(volume));
-}
-
-void FaderoniAudioProcessor::setVolume(const int& channel, float volume)
-{
-    volumeParameters[channel]->setValueNotifyingHost(volumeParameters[channel]->convertTo0to1(volume));
-}
-
-void FaderoniAudioProcessor::setPanning(const int& channel, int panning)
-{
-    panningParameters[channel]->setValueNotifyingHost(panningParameters[channel]->convertTo0to1(panning));
-}
-
 //==============================================================================
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
@@ -243,7 +228,7 @@ float FaderoniAudioProcessor::transformVolumeValueToMultiplicator(float value) c
     if (value == 12)
         return 4;
 
-    return std::pow(10.0, value / 20.0);
+    return std::pow(10.0f, value / 20.0f);
 }
 
 void FaderoniAudioProcessor::setHost(const String& hostname)
@@ -289,9 +274,9 @@ void FaderoniAudioProcessor::initializeParameters()
         amountOfChannelsParameter.setProperty("value", 3, nullptr);
         parameters->state.appendChild(amountOfChannelsParameter, nullptr);
     }
+
     apiCommunicationTimer.setAmountOfChannelsParameter(&amountOfChannelsParameter);
 
-    
 
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         subtreeParameters[i] = parameters->state.getChildWithProperty("id", "subtree_" + String(i));
@@ -307,11 +292,11 @@ void FaderoniAudioProcessor::initializeParameters()
         apiCommunicationTimer.setSubtreeParameter(i, &subtreeParameters[i]);
 
         channelModeParameters[i] = parameters->state.getChildWithProperty("id", "channelMode_" + String(i));
-        if(!channelModeParameters[i].isValid())
+        if (!channelModeParameters[i].isValid())
         {
             channelModeParameters[i] = ValueTree("PARAM");
             channelModeParameters[i].setProperty("id", "channelMode_" + String(i), nullptr);
-            channelModeParameters[i].setProperty("value",false, nullptr);
+            channelModeParameters[i].setProperty("value", false, nullptr);
             parameters->state.appendChild(channelModeParameters[i], nullptr);
         }
         apiCommunicationTimer.setChannelModeParameter(i, &channelModeParameters[i]);
@@ -319,7 +304,7 @@ void FaderoniAudioProcessor::initializeParameters()
 }
 
 
-int transformPanningTextToValue(String text)
+int transformPanningTextToValue(const String& text)
 {
     if (text.equalsIgnoreCase("L"))
         return -100;
@@ -336,29 +321,29 @@ int transformPanningTextToValue(String text)
     catch (std::out_of_range ex) { return 0; }
 }
 
-int transformVolumeTextToValue(String text)
+int transformVolumeTextToValue(const String& text)
 {
     try
     {
         return std::stoi(text.toStdString());
     }
-    catch (std::invalid_argument ex) { return 102; }
-    catch (std::out_of_range ex) { return 102; }
+    catch (std::invalid_argument ex) { return -48; }
+    catch (std::out_of_range ex) { return -48; }
 }
 
-String transformEqValueToText(float value)
+String transformEqualizerFrequencyValueToText(float value)
 {
     return String(floor(value)) + " Hz";
 }
 
-int transformEqTextToValue(String text)
+int transformEqualizerTextToValue(const String& text)
 {
     try
     {
-        return floor(std::stof(text.toStdString()));
+        return floor(std::stoi(text.toStdString()));
     }
-    catch (std::invalid_argument ex) { return 102; }
-    catch (std::out_of_range ex) { return 102; }
+    catch (std::invalid_argument ex) { return 20; }
+    catch (std::out_of_range ex) { return 20; }
 }
 
 String transformPanningValueToText(int value)
