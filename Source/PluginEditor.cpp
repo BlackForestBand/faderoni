@@ -1,17 +1,6 @@
-/*
-  ==============================================================================
-
-    This file was auto-generated!
-
-    It contains the basic framework code for a JUCE plugin editor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include <dshow.h>
-#include <math.h>
 
 //==============================================================================
 FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcessor& p, AudioProcessorValueTreeState* parameters)
@@ -24,10 +13,6 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     faderoniLook.setColour(Slider::thumbColourId, accentColour);
     faderoniLook.setDefaultSansSerifTypeface(bodyFont.getTypeface());
 
-
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-
     lblTitle.setFont(headerFont);
     lblTitle.setText("Faderoni", dontSendNotification);
 
@@ -39,6 +24,7 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
 
     lblAmountOfChannels.setText(parameters->getParameterAsValue("amount_of_channels").getValue(), dontSendNotification);
     lblAmountOfChannels.setFont(headerFont);
+
     btnMinus.setLookAndFeel(&faderoniLook);
     btnMinus.setButtonText("-");
     btnMinus.onClick = [this]()
@@ -46,14 +32,28 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
         setAmountOfChannels(amountOfChannels > 1 ? amountOfChannels - 1 : 1);
         processor.setAmountOfChannels(amountOfChannels);
     };
+
     btnPlus.setLookAndFeel(&faderoniLook);
     btnPlus.setButtonText("+");
     btnPlus.onClick = [this]()
     {
-        setAmountOfChannels(amountOfChannels = amountOfChannels < 6 ? amountOfChannels + 1 : 6);
+        setAmountOfChannels(amountOfChannels = amountOfChannels < FADERONI_MAX_CHANNELS ? amountOfChannels + 1 : FADERONI_MAX_CHANNELS);
         processor.setAmountOfChannels(amountOfChannels);
     };
 
+    lblMasterVolume.setFont(bodyFont);
+    lblMasterVolume.setText("Master Volume:", dontSendNotification);
+
+    sliderMasterVolume.setSliderStyle(Slider::LinearHorizontal);
+    sliderMasterVolume.setRange(-48, 12, 0.1);
+    sliderMasterVolume.setPopupDisplayEnabled(true, false, this);
+    sliderMasterVolume.setLookAndFeel(&faderoniLook);
+    sliderMasterVolume.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 80, 20);
+    sliderMasterVolume.setDoubleClickReturnValue(true, 102);
+    sliderMasterVolume.setValue(0);
+
+    addAndMakeVisible(&sliderMasterVolume);
+    addAndMakeVisible(&lblMasterVolume);
     addAndMakeVisible(&lblTitle);
     addAndMakeVisible(&lblHost);
     addAndMakeVisible(&inputHost);
@@ -61,8 +61,34 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
     addAndMakeVisible(&btnMinus);
     addAndMakeVisible(&btnPlus);
 
-
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+        channelMode[i] = parameters->getParameterAsValue("channelMode_" + String(i)).getValue();
+
+        btnModeEqualizer[i].setLookAndFeel(&faderoniLook);
+        btnModeEqualizer[i].setButtonText("EQ");
+        btnModeEqualizer[i].setClickingTogglesState(true);
+        btnModeEqualizer[i].setRadioGroupId(i + 1);
+        btnModeEqualizer[i].onClick = [this, i]()
+        {
+            setMode(i, btnModeEqualizer[i].getToggleState());
+        };
+        btnModeEqualizer[i].setToggleState(channelMode[i], dontSendNotification);
+
+
+        btnModeVolume[i].setLookAndFeel(&faderoniLook);
+        btnModeVolume[i].setButtonText("VOL");
+        btnModeVolume[i].setClickingTogglesState(true);
+        btnModeVolume[i].setRadioGroupId(i + 1);
+        btnModeVolume[i].onClick = [this, i]()
+        {
+            setMode(i, !btnModeVolume[i].getToggleState());
+        };
+        btnModeVolume[i].setToggleState(!channelMode[i], dontSendNotification);
+
+        lblMode[i].setFont(bodyFont);
+        lblMode[i].setText("Mode:", dontSendNotification);
+
+
         lblSubtrees[i].setFont(bodyFont);
         lblSubtrees[i].setText("Path:", dontSendNotification);
 
@@ -87,17 +113,33 @@ FaderoniAudioProcessorEditor::FaderoniAudioProcessorEditor(FaderoniAudioProcesso
         sliderPannings[i].setDoubleClickReturnValue(true, 64);
         sliderPannings[i].setValue(0);
 
+        sliderEqualizers[i].setSliderStyle(Slider::LinearVertical);
+        sliderEqualizers[i].setRange(20, 20000, 1);
+        sliderEqualizers[i].setSkewFactorFromMidPoint(632);
+        sliderEqualizers[i].setPopupDisplayEnabled(true, false, this);
+        sliderEqualizers[i].setLookAndFeel(&faderoniLook);
+        sliderEqualizers[i].setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxBelow, false, 80, 20);
+        sliderEqualizers[i].setDoubleClickReturnValue(true, 2000);
+        sliderEqualizers[i].setValue(2000);
 
         // this function adds the slider to the editor
         addAndMakeVisible(&sliderVolumes[i]);
         addAndMakeVisible(&sliderPannings[i]);
         addAndMakeVisible(&inputSubtrees[i]);
+        addAndMakeVisible(&sliderEqualizers[i]);
+        addAndMakeVisible(&btnModeEqualizer[i]);
+        addAndMakeVisible(&btnModeVolume[i]);
+        addAndMakeVisible(&lblMode[i]);
 
         // slider attachments for automation
         volumeAttachments[i].reset(new SliderAttachment(*parameters, "volume_" + String(i), sliderVolumes[i]));
         panningAttachments[i].reset(new SliderAttachment(*parameters, "panning_" + String(i), sliderPannings[i]));
+        eqAttachments[i].reset(new SliderAttachment(*parameters, "eq_" + String(i), sliderEqualizers[i]));
     }
 
+    masterVolumeAttachment.reset(new SliderAttachment(*parameters, "master_volume", sliderMasterVolume));
+
+    updateVisibility();
     setResizable(false, false);
     setSize();
 }
@@ -110,7 +152,12 @@ FaderoniAudioProcessorEditor::~FaderoniAudioProcessorEditor()
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         sliderVolumes[i].setLookAndFeel(nullptr);
         sliderPannings[i].setLookAndFeel(nullptr);
+        sliderEqualizers[i].setLookAndFeel(nullptr);
+        btnModeEqualizer[i].setLookAndFeel(nullptr);
+        btnModeVolume[i].setLookAndFeel(nullptr);
     }
+
+    sliderMasterVolume.setLookAndFeel(nullptr);
 }
 
 //==============================================================================
@@ -121,6 +168,15 @@ void FaderoniAudioProcessorEditor::setVolume(const int& channel, const float& va
 
     prevVolumes[channel] = val;
     sliderVolumes[channel].setValue(val, dontSendNotification);
+}
+
+void FaderoniAudioProcessorEditor::setMasterVolume(const float& val)
+{
+    if (val == prevMasterVolume)
+        return;
+
+    prevMasterVolume = val;
+    sliderMasterVolume.setValue(val, dontSendNotification);
 }
 
 void FaderoniAudioProcessorEditor::setPanning(const int& channel, const int& val)
@@ -137,29 +193,32 @@ void FaderoniAudioProcessorEditor::setAmountOfChannels(const int& amount)
     amountOfChannels = amount;
     lblAmountOfChannels.setText(String(amount), dontSendNotification);
 
-    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
-        sliderVolumes[i].setVisible(i < amountOfChannels);
-        sliderPannings[i].setVisible(i < amountOfChannels);
-        inputSubtrees[i].setVisible(i < amountOfChannels);
-        inputSubtrees[i].setVisible(i < amountOfChannels);
-    }
-
+    updateVisibility();
     setSize();
+}
+
+void FaderoniAudioProcessorEditor::updateVisibility()
+{
+    for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
+
+        sliderVolumes[i].setVisible(i < amountOfChannels && !channelMode[i]);
+        sliderPannings[i].setVisible(i < amountOfChannels && !channelMode[i]);
+
+        sliderEqualizers[i].setVisible(i < amountOfChannels && channelMode[i]);
+
+        inputSubtrees[i].setVisible(i < amountOfChannels);
+        inputSubtrees[i].setVisible(i < amountOfChannels);
+
+        btnModeEqualizer[i].setVisible(i < amountOfChannels);
+        btnModeVolume[i].setVisible(i < amountOfChannels);
+        lblMode[i].setVisible(i < amountOfChannels);
+    }
 }
 
 //==============================================================================
 void FaderoniAudioProcessorEditor::paint(Graphics& g)
 {
-    // fill the whole window white
     g.fillAll(Colour(20, 20, 20));
-    // set the current drawing colour to black
-    /*g.setColour(Colours::white);
-    // set the font size and draw text to the screen
-    //g.setFont(headerFont);
-    g.setFont(24.0f);
-
-    g.drawFittedText("Faderoni", 100, 22, getWidth(), 30, Justification::left, 1);
-    */
 }
 
 void FaderoniAudioProcessorEditor::resized()
@@ -182,20 +241,36 @@ void FaderoniAudioProcessorEditor::resized()
     lblAmountOfChannels.setJustificationType(Justification::Flags::centred);
     btnPlus.setBounds(width - 40, 7, 30, 30);
 
+    lblMasterVolume.setBounds(5, height - 35, 100, 30);
+    lblMasterVolume.setJustificationType(Justification::Flags::centred);
+
+    sliderMasterVolume.setBounds(105, height - 30, 300, 20);
+
     for (auto i = 0; i < FADERONI_MAX_CHANNELS; i++) {
         const auto col = i % 3;
         const auto row = i / 3;
 
+        sliderEqualizers[i].setBounds(col * 250 + 50, row * 220 + 40, 150, 120);
         sliderVolumes[i].setBounds(col * 250 + 50, row * 220 + 40, 80, 120);
         sliderPannings[i].setBounds(col * 250 + 150, row * 220 + 80, 60, 80);
         inputSubtrees[i].setBounds(col * 250 + 50, row * 220 + 180, 160, inputHeight);
         inputSubtrees[i].setJustification(Justification::Flags::centred);
+        lblMode[i].setBounds(col * 250 + 60, row * 220 + 220, 50, 20);
+        btnModeVolume[i].setBounds(col * 250 + 125, row * 220 + 220, 35, 20);
+        btnModeEqualizer[i].setBounds(col * 250 + 165, row * 220 + 220, 30, 20);
     }
+}
+
+void FaderoniAudioProcessorEditor::setMode(const int& channel, bool mode)
+{
+    channelMode[channel] = mode;
+    processor.setChannelMode(channel, mode);
+    updateVisibility();
 }
 
 void FaderoniAudioProcessorEditor::setSize()
 {
     const auto width = 30 + max(min(amountOfChannels, 3), 2) * 250;
-    const auto height = std::ceil(amountOfChannels / 3.0f) * 220;
+    const auto height = 90 + std::ceil(amountOfChannels / 3.0f) * 220;
     static_cast<Component*>(this)->setSize(width, height);
 }

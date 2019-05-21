@@ -59,13 +59,12 @@ public:
     void getStateInformation(MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
-    void setVolume(const int& channel, float volume);
-    void setPanning(const int& channel, int panning);
     float transformVolumeValueToMultiplicator(float value) const;
 
-    void setHost(const String& string);
+    void setHost(const String& hostname);
     void setSubtree(const int& channel, const String& subtree);
     void setAmountOfChannels(const int& amount);
+    void setChannelMode(const int& channel, bool mode);
 private:
     MotuWebApi motuWebApi;
     ApiCommunicationTimer apiCommunicationTimer;
@@ -73,14 +72,17 @@ private:
     AudioProcessorValueTreeState* parameters = nullptr;
     ValueTree hostnameParameter;
     ValueTree amountOfChannelsParameter;
-    AudioParameterFloat* volumeParameters[8];
-    AudioParameterInt* panningParameters[8];
-    ValueTree subtreeParameters[8];
+    AudioParameterFloat* volumeParameters[FADERONI_MAX_CHANNELS];
+    AudioParameterInt* panningParameters[FADERONI_MAX_CHANNELS];
+    AudioParameterFloat* equalizerFrequencyParameters[FADERONI_MAX_CHANNELS];
+    AudioParameterFloat* masterVolumeParameter;
+    ValueTree subtreeParameters[FADERONI_MAX_CHANNELS];
+    ValueTree channelModeParameters[FADERONI_MAX_CHANNELS];
 
     FaderoniAudioProcessorEditor* editor;
 
     void initializeParameters();
 
     //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderoniAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(FaderoniAudioProcessor);
 };
